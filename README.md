@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿# TDS 太极调度层 · 上架主文档（README）
+=======
+# TDS 太极调度层 · 上架主文档（README）
+>>>>>>> origin/main
 
 > 版本: 0.9.0-rc | 日期: 2026-10-18 | 状态: 上架预备完成（真机对照 + wheel 签名已齐），待实际上架
 > 校验: 本目录 CHECKSUMS.txt 含全部发布物 SHA256；wheel 另附 Ed25519 自有签名（公钥 tds_core_public.pem）
