@@ -11,3 +11,5 @@ temp/
 *.whl
 *.sig
 release/.sign/
+*.bak_*
+tests/_probe_int8.txt
