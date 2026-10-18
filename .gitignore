@@ -1,0 +1,13 @@
+﻿__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+tds_core.egg-info/
+bench_out/
+output/
+temp/
+*.log
+*.whl
+*.sig
+release/.sign/

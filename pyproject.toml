@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tds-core"
+version = "0.3.0"
+description = "太极调度层 TDS 引擎核心：大模型权重-显存动态调度与 KV 分页中间层（零宿主依赖，可独立安装/授权）"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "BY LAOMENG 网络工作室" }]
+keywords = ["vram", "kvcache", "paging", "scheduler", "offload"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+# 引擎核心零第三方运行时依赖（生产环境不需要 torch / comfy）
+dependencies = []
+
+[tool.setuptools]
+# 仅打包可售引擎：core/ kv/ registry/ security/；adapters/、integrations/ 为随宿主部署的可选配件，不随包分发
+# ui/ 为对话交互测试台（知识分支，不计入可售 IP），同样不随包分发
+packages = ["tds", "tds.core", "tds.kv", "tds.registry", "tds.security"]
+
+[tool.setuptools.package-data]
+"tds.registry" = ["data/*.json"]

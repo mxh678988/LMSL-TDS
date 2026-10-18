@@ -1,0 +1,13 @@
+Copyright (c) 2026 BY LAOMENG 网络工作室（孟祥辉）
+
+太极调度层 TDS（Taiji Dispatch Scheduler）
+保留所有权利（All Rights Reserved）。
+
+本项目核心调度逻辑为独立实现，拥有完整自主知识产权。
+
+对外部推理引擎的调用均通过其公开、开放的接口完成：
+  - llama.cpp（MIT License）— 仅通过其公开 API / GGUF 格式交互
+  - ComfyUI — 仅通过其官方 custom_node 扩展接口交互
+  - 移动端后端（NCNN / MNN / llama.cpp-mobile）— 仅通过统一 Adapter 契约对接
+
+本项目不包含、不复制、不内联任何第三方受版权保护的源代码。

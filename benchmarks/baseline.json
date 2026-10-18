@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "timestamp": "2026-10-05T20:40:28",
+    "host": "闲云工作站",
+    "os": "Windows 10",
+    "python": "3.11.8"
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 3060",
+    "driver": "616.92",
+    "total_mb": 12288,
+    "used_mb": 860,
+    "free_mb": 11254,
+    "util_pct": 26,
+    "source": "nvidia-smi"
+  },
+  "gpu_torch_view": null,
+  "vram_sampling": {
+    "duration_s": 8.0,
+    "interval_s": 0.5,
+    "samples": 14,
+    "peak_used_mb": 863,
+    "avg_used_mb": 861.6,
+    "min_used_mb": 860
+  },
+  "memory": {
+    "total_gb": 63.89,
+    "available_gb": 46.2,
+    "percent": 27.7
+  },
+  "disks": [
+    {
+      "mount": "C:\\",
+      "fs": "NTFS",
+      "total_gb": 299.1,
+      "free_gb": 47.7,
+      "percent": 84.0
+    },
+    {
+      "mount": "D:\\",
+      "fs": "NTFS",
+      "total_gb": 653.9,
+      "free_gb": 380.9,
+      "percent": 41.8
+    },
+    {
+      "mount": "E:\\",
+      "fs": "NTFS",
+      "total_gb": 931.5,
+      "free_gb": 519.4,
+      "percent": 44.2
+    }
+  ],
+  "disk_bandwidth": {
+    "size_mb": 128,
+    "write_mb_s": 344.5,
+    "read_mb_s": 1116.3,
+    "workdir": "C:\\Users\\15266\\AppData\\Roaming\\Tencent\\Marvis\\User\\oAN1i2Rl9l9-Oz2ndrGkoT6RNZhw\\workspace\\conv_1664917ef41e4db1a75c2871b5fb7c85\\temp"
+  },
+  "recommendation": {
+    "vram_budget_mb": 10788,
+    "reserve_mb": 1500,
+    "note": "基于实测 total=12288MiB 校准（RTX 3060 12GB 级）",
+    "verified_by_sampling": true
+  }
+}

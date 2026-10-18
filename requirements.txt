@@ -1,0 +1,15 @@
+# 太极调度层 TDS —— 依赖说明
+#
+# 核心（tds/core）零第三方依赖，仅使用 Python 标准库。
+#
+# 以下为可选依赖，仅在对应适配层启用时安装：
+
+# --- PC / ComfyUI 适配 ---
+# torch            # 由 ComfyUI 环境自带，不单独安装
+
+# --- PC / llama.cpp 适配 ---
+# llama-cpp-python # 如需直接调用 llama.cpp（MIT）
+
+# --- 移动端适配（预留） ---
+# Android 侧使用 NCNN / MNN / llama.cpp-mobile，通过统一 Adapter 接口对接
+（内容由AI生成，仅供参考）

@@ -1,0 +1,870 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TDS 对话测试台</title>
+<style>
+  :root{
+    --bg-0:#070b16; --bg-1:#0c1424; --bg-2:#131c31;
+    --panel:rgba(19,30,52,.66); --panel-2:rgba(27,40,68,.6); --line:rgba(126,152,205,.15);
+    --line-strong:rgba(201,168,106,.38);
+    --fg:#e9eef9; --fg-dim:#93a5c3;
+    --accent:#c9a86a; --accent-2:#a8854a; --accent-soft:rgba(201,168,106,.12);
+    --ok:#4cc38a; --warn:#e0a93e; --err:#f2555a;
+    --user:rgba(214,110,90,.13); --asst:rgba(24,35,60,.5);
+    --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:linear-gradient(160deg,var(--bg-0) 0%,var(--bg-1) 48%,var(--bg-2) 100%);
+    color:var(--fg);font:14px/1.6 "Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1100px 560px at 88% -12%, rgba(201,168,106,.09), transparent 62%),
+      radial-gradient(900px 520px at -8% 112%, rgba(86,140,255,.08), transparent 60%),
+      radial-gradient(700px 380px at 8% -6%, rgba(76,195,138,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;right:-90px;top:-90px;width:330px;height:330px;z-index:0;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg, rgba(201,168,106,.05) 0deg 20deg, transparent 20deg 40deg);
+    -webkit-mask:radial-gradient(circle at center, transparent 34%, #000 36%, #000 100%);
+            mask:radial-gradient(circle at center, transparent 34%, #000 36%, #000 100%);
+    opacity:.5;
+  }
+  header.topbar{
+    position:relative;z-index:1;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    padding:12px 18px;background:linear-gradient(180deg, rgba(24,36,62,.85), rgba(16,25,45,.75));
+    border-bottom:1px solid var(--line);
+    box-shadow:0 1px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    backdrop-filter:blur(6px);
+  }
+  .brand{display:flex;align-items:center;gap:11px;font-weight:600;letter-spacing:.5px}
+  .taiji-logo{flex-shrink:0;filter:drop-shadow(0 0 6px rgba(201,168,106,.35))}
+  .brand-text{display:flex;flex-direction:column;line-height:1.2}
+  .brand-title{font-size:15px;font-weight:700;letter-spacing:2px;color:var(--fg)}
+  .brand-sub{font-size:10.5px;color:var(--fg-dim);letter-spacing:3px;margin-top:2px}
+  .brand .tag{
+    font-size:10.5px;font-weight:400;color:var(--fg-dim);border:1px solid var(--line);
+    border-radius:20px;padding:2px 10px;margin-left:4px;background:rgba(255,255,255,.02);
+  }
+  .statbar{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--fg-dim);margin-left:auto}
+  .stat{
+    display:flex;align-items:center;gap:6px;white-space:nowrap;
+    background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;
+    padding:3px 10px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--fg-dim)}
+  .dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .dot.off{background:var(--err);box-shadow:0 0 8px rgba(242,85,90,.6)}
+  main{flex:1;display:flex;min-height:0;position:relative;z-index:1}
+  aside.sidebar{
+    width:292px;flex-shrink:0;background:linear-gradient(180deg, rgba(20,31,54,.72), rgba(15,24,43,.78));
+    border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;
+    backdrop-filter:blur(5px);overflow-y:auto;
+  }
+  .panel{padding:9px 12px 10px;border-bottom:1px solid var(--line)}
+  .panel.grow{flex:1;min-height:0;display:flex;flex-direction:column;border-bottom:none;min-height:130px}
+  .panel-title{
+    font-size:11.5px;color:var(--accent);text-transform:uppercase;letter-spacing:1.6px;
+    margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-title::before{content:"";width:3px;height:11px;background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:2px;margin-right:7px;display:inline-block}
+  select,textarea,input[type=text],input[type=number]{
+    width:100%;background:rgba(13,21,38,.72);color:var(--fg);border:1px solid var(--line);
+    border-radius:8px;padding:6px 8px;font-size:13px;font-family:inherit;outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  ::placeholder{color:#6b7a99;opacity:1}
+  select:focus,textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  textarea{resize:vertical}
+  .field{margin-bottom:6px}
+  .field label{display:block;font-size:11.5px;color:var(--fg-dim);margin-bottom:2px}
+  .row2{display:flex;gap:8px}
+  .hint{font-size:11px;color:var(--fg-dim);margin-top:3px;line-height:1.45}
+  .sessions{overflow:auto;flex:1;margin:-4px -4px 0;min-height:60px}
+  .session{
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+    padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;
+    transition:background .15s, border-color .15s;
+  }
+  .session:hover{background:rgba(255,255,255,.045);border-color:var(--line)}
+  .session.active{background:var(--accent-soft);border-color:var(--line-strong)}
+  .session .t{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .session .m{font-size:11px;color:var(--fg-dim);flex-shrink:0}
+  .session .x{opacity:0;color:var(--fg-dim);border:none;background:none;cursor:pointer;font-size:14px}
+  .session:hover .x{opacity:1}
+  .session .x:hover{color:var(--err)}
+  section.chat{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+  .messages{flex:1;overflow:auto;padding:20px 26px;display:flex;flex-direction:column;gap:14px}
+  .msg{max-width:900px;width:100%;align-self:center;display:flex;flex-direction:column;gap:8px}
+  .msg .who{font-size:12px;color:var(--fg-dim);display:flex;gap:10px;align-items:center}
+  .bubble{
+    background:var(--asst);border:1px solid var(--line);border-radius:14px;padding:13px 15px;
+    white-space:normal;word-break:break-word;box-shadow:0 4px 14px rgba(0,0,0,.22);
+  }
+  .msg.user .bubble{background:var(--user);border-color:rgba(214,110,90,.28)}
+  .msg.err .bubble{border-color:var(--err);background:rgba(242,85,90,.08)}
+  .bubble p{margin:0 0 8px}
+  .bubble p:last-child{margin-bottom:0}
+  .bubble pre{
+    background:rgba(7,11,22,.75);border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+    overflow:auto;font-family:var(--mono);font-size:12.5px;margin:8px 0;
+  }
+  .bubble code{font-family:var(--mono);font-size:12.5px;background:rgba(7,11,22,.75);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px}
+  .bubble pre code{background:none;border:none;padding:0}
+  .bubble h1,.bubble h2,.bubble h3{margin:10px 0 6px;font-size:15px;color:var(--accent)}
+  .bubble ul,.bubble ol{margin:6px 0;padding-left:22px}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap}
+  .thumbs img{max-height:120px;max-width:180px;border-radius:10px;border:1px solid var(--line);cursor:zoom-in}
+  .meta{font-size:11px;color:var(--fg-dim);display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono)}
+  .caret{display:inline-block;width:8px;height:15px;background:var(--accent);vertical-align:-2px;animation:blink 1s steps(1) infinite;border-radius:1px}
+  @keyframes blink{50%{opacity:0}}
+  .composer{border-top:1px solid var(--line);background:linear-gradient(180deg, rgba(17,26,46,.82), rgba(13,20,38,.88));padding:12px 26px 16px;backdrop-filter:blur(5px)}
+  .composer-inner{max-width:900px;margin:0 auto}
+  .attachments{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .attach{position:relative}
+  .attach img{height:56px;border-radius:8px;border:1px solid var(--line)}
+  .attach button{
+    position:absolute;top:-6px;right:-6px;width:18px;height:18px;line-height:1;border-radius:50%;
+    border:none;background:var(--err);color:#fff;cursor:pointer;font-size:12px
+  }
+  .composer textarea{min-height:56px;max-height:180px;font-size:14px}
+  .composer-actions{display:flex;gap:10px;align-items:center;margin-top:8px}
+  .spacer{flex:1}
+  .btn{
+    border:1px solid var(--line);background:rgba(27,40,68,.6);color:var(--fg);border-radius:9px;
+    padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;
+    transition:border-color .15s, background .15s, box-shadow .15s;
+  }
+  .btn:hover{border-color:var(--accent);box-shadow:0 0 10px var(--accent-soft)}
+  .btn.primary{
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));border-color:transparent;color:#14100a;font-weight:700;
+    box-shadow:0 2px 12px rgba(201,168,106,.3);
+  }
+  .btn.primary:hover{background:linear-gradient(135deg, #dcbd7f, var(--accent));box-shadow:0 2px 16px rgba(201,168,106,.5)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.tiny{padding:3px 8px;font-size:11px}
+  .empty{color:var(--fg-dim);text-align:center;padding:40px 0;font-size:13px;line-height:2}
+  .kbd{border:1px solid var(--line);border-radius:5px;padding:0 5px;font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.03)}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(126,152,205,.28);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(201,168,106,.4);background-clip:content-box;border:2px solid transparent}
+  .trace-wrap summary{transition:color .15s}
+  .trace-wrap summary:hover{color:var(--accent-2)!important}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="taiji-logo" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="none" stroke="#c9a86a" stroke-width="1.8"/>
+      <path d="M32 2 a30 30 0 0 1 0 60 a15 15 0 0 1 0 -30 a15 15 0 0 0 0 -30 z" fill="#c9a86a"/>
+      <path d="M32 2 a30 30 0 0 0 0 60 a15 15 0 0 0 0 -30 a15 15 0 0 1 0 -30 z" fill="#101a30"/>
+      <circle cx="47" cy="32" r="7" fill="#101a30"/>
+      <circle cx="17" cy="32" r="7" fill="#c9a86a"/>
+      <circle cx="32" cy="32" r="29.4" fill="none" stroke="rgba(201,168,106,.4)" stroke-width="0.8"/>
+    </svg>
+    <div class="brand-text">
+      <div class="brand-title">太易 · TDS 对话测试台</div>
+      <div class="brand-sub">太极调度内核观测台</div>
+    </div>
+    <span class="tag">知识分支 · 不计入可售 IP</span>
+  </div>
+  <div class="statbar" id="statbar">
+    <div class="stat"><span class="dot" id="dot-backend"></span><span id="st-backend">后端探测中…</span></div>
+    <div class="stat" id="st-model">模型：—</div>
+    <div class="stat" id="st-vram">显存：—</div>
+    <div class="stat" id="st-session">会话：0</div>
+  </div>
+</header>
+
+<main>
+  <aside class="sidebar">
+    <div class="panel">
+      <div class="panel-title">模型</div>
+      <select id="model-select"></select>
+      <div class="hint" id="model-meta">正在读取后端模型清单…</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">参数</div>
+      <div class="field">
+        <label>系统提示（System）</label>
+        <textarea id="p-system" rows="3" placeholder="留空则不发送 system 消息"></textarea>
+      </div>
+      <div class="field row2">
+        <div>
+          <label>temperature</label>
+          <input type="number" id="p-temp" value="0.7" min="0" max="2" step="0.1" />
+        </div>
+        <div>
+          <label>top_p</label>
+          <input type="number" id="p-topp" value="0.9" min="0.01" max="1" step="0.05" />
+        </div>
+      </div>
+      <div class="field">
+        <label>max_tokens（0 = 不限制）</label>
+        <input type="number" id="p-maxtok" value="0" min="0" step="64" />
+      </div>
+      <button class="btn tiny" id="btn-apply">应用到当前会话</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">TDS 调度</div>
+      <div class="hint" id="tds-mounted">调度器未挂载</div>
+      <div class="field">
+        <label>压力状态</label>
+        <div class="hint" id="tds-pressure">—</div>
+      </div>
+      <div class="field row2">
+        <div>
+          <label>显存水位</label>
+          <input type="text" id="tds-vram" readonly />
+        </div>
+        <div>
+          <label>step</label>
+          <input type="text" id="tds-step" readonly />
+        </div>
+      </div>
+      <div class="field row2">
+        <div>
+          <label>预算 MB</label>
+          <input type="number" id="tds-vram-budget" min="256" step="128" />
+        </div>
+        <div>
+          <label>keep_steps</label>
+          <input type="number" id="tds-keep-steps" min="0" step="1" />
+        </div>
+      </div>
+      <div class="field">
+        <label>预取开关</label>
+        <select id="tds-prefetch">
+          <option value="false">关闭（保守）</option>
+          <option value="true">开启（低压力预读）</option>
+        </select>
+      </div>
+      <div class="field row2">
+        <div>
+          <label>压力阈值</label>
+          <input type="number" id="tds-pressure-ratio" min="0.1" max="1" step="0.01" />
+        </div>
+        <div>
+          <label>冻结阈值</label>
+          <input type="number" id="tds-frozen-ratio" min="0.1" max="1" step="0.01" />
+        </div>
+      </div>
+      <div class="field">
+        <label>决策轨迹容量</label>
+        <input type="number" id="tds-trace-maxlen" min="10" step="10" />
+      </div>
+      <div class="field">
+        <label>阴阳模式分布</label>
+        <div class="hint" id="tds-yangyin">—</div>
+      </div>
+      <button class="btn tiny" id="btn-tds-save" disabled>保存调度参数</button>
+      <button class="btn tiny" id="btn-tds-refresh">刷新状态</button>
+      <div class="hint" id="tds-msg"></div>
+    </div>
+
+    <div class="panel grow">
+      <div class="panel-title">
+        <span>会话</span>
+        <button class="btn tiny" id="btn-new">新建</button>
+      </div>
+      <div class="sessions" id="session-list"></div>
+    </div>
+  </aside>
+
+  <section class="chat">
+    <div class="messages" id="messages">
+      <div class="empty">
+        选择模型后开始对话，可直接测试文本能力与多模态图片理解。<br />
+        支持：<span class="kbd">Enter</span> 发送 · <span class="kbd">Shift+Enter</span> 换行 · 粘贴 / 拖入图片
+      </div>
+    </div>
+    <div class="composer">
+      <div class="composer-inner">
+        <div class="attachments" id="attachments"></div>
+        <textarea id="input" rows="2" placeholder="输入消息…（带图对话请选择具备多模态能力的模型）"></textarea>
+        <div class="composer-actions">
+          <label class="btn">添加图片<input type="file" id="file" accept="image/*" multiple hidden /></label>
+          <button class="btn" id="btn-clear">清空对话</button>
+          <div class="spacer"></div>
+          <span class="hint" id="send-hint"></span>
+          <button class="btn primary" id="btn-send">发送</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const state = {
+  models: [],
+  session: null,      // 当前会话详情
+  sessions: [],
+  images: [],         // {name, mime, dataUri, size}
+  streaming: false,
+  controller: null,
+};
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------------- HTTP ---------------- */
+async function api(path, options) {
+  const resp = await fetch(path, Object.assign({ headers: { "Content-Type": "application/json" } }, options || {}));
+  const text = await resp.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { error: text }; }
+  if (!resp.ok) throw new Error(data.error || ("HTTP " + resp.status));
+  return data;
+}
+
+/* ---------------- 状态条 ---------------- */
+async function refreshStatus() {
+  try {
+    const st = await api("/api/status");
+    const online = st.backend && st.backend.online;
+    $("dot-backend").className = "dot " + (online ? "on" : "off");
+    $("st-backend").textContent = online
+      ? ("后端 " + st.backend.kind + (st.backend.version ? " " + st.backend.version : ""))
+      : ("后端离线 · " + (st.backend.base_url || ""));
+    const hw = st.hardware || {};
+    if (hw.ok && hw.total_vram_mb) {
+      $("st-vram").textContent = "显存 " + Math.round(hw.free_vram_mb / 1024) + " / " + Math.round(hw.total_vram_mb / 1024) + " GB";
+    } else {
+      $("st-vram").textContent = "显存：不可用";
+    }
+    $("st-session").textContent = "会话：" + (st.sessions || 0);
+  } catch (e) {
+    $("dot-backend").className = "dot off";
+    $("st-backend").textContent = "面板服务异常：" + e.message;
+  }
+}
+
+/* ---------------- TDS 调度控制面板 ---------------- */
+const TDS_EDITABLE = ["vram_budget_mb", "keep_steps", "prefetch_enabled",
+                       "pressure_ratio", "frozen_ratio", "trace_maxlen"];
+
+async function refreshTds() {
+  try {
+    const cfg = await api("/api/tds/config");
+    const mounted = cfg.mounted;
+    $("tds-mounted").textContent = mounted ? "调度器已挂载" : "调度器未挂载（未观测）";
+    if (!mounted) {
+      $("tds-pressure").textContent = "—";
+      $("tds-vram").value = "";
+      $("tds-step").value = "";
+      $("tds-yangyin").textContent = "—";
+      $("btn-tds-save").disabled = true;
+      return;
+    }
+    const c = cfg.config || {};
+    $("tds-vram-budget").value = c.vram_budget_mb ?? "";
+    $("tds-keep-steps").value = c.keep_steps ?? "";
+    $("tds-prefetch").value = c.prefetch_enabled ? "true" : "false";
+    $("tds-pressure-ratio").value = c.pressure_ratio ?? "";
+    $("tds-frozen-ratio").value = c.frozen_ratio ?? "";
+    $("tds-trace-maxlen").value = c.trace_maxlen ?? "";
+    $("btn-tds-save").disabled = false;
+
+    const st = await api("/api/tds/state");
+    if (!st.mounted) {
+      $("tds-pressure").textContent = "—";
+      return;
+    }
+    $("tds-pressure").textContent = st.pressure || "low";
+    $("tds-step").value = st.step ?? 0;
+    if (st.vram) {
+      const r = Math.round((st.vram.usage_ratio || 0) * 100);
+      $("tds-vram").value = st.vram.used_mb + " / " + st.vram.total_mb + " MB (" + r + "%)";
+    } else {
+      $("tds-vram").value = "无显存数据";
+    }
+    const yy = st.yang_yin || {};
+    const parts = Object.keys(yy).map((k) => k + " " + yy[k]);
+    $("tds-yangyin").textContent = parts.length ? parts.join(" · ") : "暂无决策记录";
+    $("tds-msg").textContent = "最近更新 " + new Date().toLocaleTimeString();
+  } catch (e) {
+    $("tds-msg").textContent = "调度面板读取失败：" + e.message;
+  }
+}
+
+async function saveTds() {
+  const body = {
+    vram_budget_mb: parseInt($("tds-vram-budget").value, 10),
+    keep_steps: parseInt($("tds-keep-steps").value, 10),
+    prefetch_enabled: $("tds-prefetch").value === "true",
+    pressure_ratio: parseFloat($("tds-pressure-ratio").value),
+    frozen_ratio: parseFloat($("tds-frozen-ratio").value),
+    trace_maxlen: parseInt($("tds-trace-maxlen").value, 10),
+  };
+  try {
+    const res = await api("/api/tds/config", { method: "POST", body: JSON.stringify(body) });
+    if (res.ok) {
+      $("tds-msg").textContent = "参数已保存：" + Object.keys(res.updated).join("、");
+      await refreshTds();
+    } else {
+      $("tds-msg").textContent = "保存失败：" + ((res.errors || []).join("；") || res.error || "未知错误");
+    }
+  } catch (e) {
+    $("tds-msg").textContent = "保存失败：" + e.message;
+  }
+}
+
+/* ---------------- 模型 ---------------- */
+async function loadModels() {
+  try {
+    const data = await api("/api/models");
+    state.models = data.models || [];
+    const sel = $("model-select");
+    sel.innerHTML = "";
+    if (!state.models.length) {
+      sel.innerHTML = '<option value="">（后端无可用模型）</option>';
+      $("model-meta").textContent = "未从后端读到模型，请确认推理服务已启动。";
+      return;
+    }
+    state.models.forEach((m) => {
+      const opt = document.createElement("option");
+      opt.value = m.name;
+      const marks = [];
+      if (m.multimodal) marks.push("多模态");
+      if (m.remote) marks.push("云端");
+      if (m.parameter_size) marks.push(m.parameter_size);
+      if (m.size_bytes) marks.push((m.size_bytes / 1073741824).toFixed(1) + "G");
+      opt.textContent = m.name + (marks.length ? "  [" + marks.join(" · ") + "]" : "");
+      sel.appendChild(opt);
+    });
+    const preferred = (state.session && state.session.model) || data.default || state.models[0].name;
+    sel.value = preferred;
+    renderModelMeta();
+  } catch (e) {
+    $("model-meta").textContent = "模型清单读取失败：" + e.message;
+  }
+}
+
+function currentModel() {
+  const name = $("model-select").value;
+  return state.models.find((m) => m.name === name) || null;
+}
+
+function renderModelMeta() {
+  const m = currentModel();
+  if (!m) { $("model-meta").textContent = "—"; return; }
+  const parts = [];
+  parts.push(m.multimodal ? "支持图片输入（多模态）" : "仅文本输入");
+  if (m.family) parts.push("族 " + m.family);
+  if (m.quantization) parts.push(m.quantization);
+  if (m.remote) parts.push("云端模型（本地无权重）");
+  $("model-meta").textContent = parts.join(" · ");
+}
+
+/* ---------------- 会话 ---------------- */
+function syncParams() {
+  const s = state.session;
+  if (!s) return;
+  $("p-system").value = s.system || "";
+  $("p-temp").value = s.temperature;
+  $("p-topp").value = s.top_p;
+  $("p-maxtok").value = s.max_tokens;
+  if (s.model) $("model-select").value = s.model;
+  renderModelMeta();
+  $("st-model").textContent = "模型：" + (s.model || "未选择");
+}
+
+function renderSessions() {
+  const box = $("session-list");
+  box.innerHTML = "";
+  if (!state.sessions.length) {
+    box.innerHTML = '<div class="hint" style="padding:8px 10px">暂无会话</div>';
+    return;
+  }
+  state.sessions.forEach((s) => {
+    const row = document.createElement("div");
+    row.className = "session" + (state.session && state.session.id === s.id ? " active" : "");
+    const t = document.createElement("div");
+    t.className = "t";
+    t.textContent = s.title || "未命名";
+    const m = document.createElement("div");
+    m.className = "m";
+    m.textContent = s.count + " 条";
+    const x = document.createElement("button");
+    x.className = "x";
+    x.textContent = "×";
+    x.title = "删除该会话";
+    x.onclick = async (ev) => {
+      ev.stopPropagation();
+      await api("/api/sessions/" + s.id, { method: "DELETE" });
+      if (state.session && state.session.id === s.id) state.session = null;
+      await loadSessions();
+      if (!state.session && state.sessions.length) await openSession(state.sessions[0].id);
+      else if (!state.sessions.length) await newSession();
+      refreshStatus();
+    };
+    row.append(t, m, x);
+    row.onclick = () => openSession(s.id);
+    box.appendChild(row);
+  });
+}
+
+async function loadSessions() {
+  const data = await api("/api/sessions");
+  state.sessions = data.sessions || [];
+  renderSessions();
+}
+
+async function newSession() {
+  const data = await api("/api/sessions", {
+    method: "POST",
+    body: JSON.stringify({ model: $("model-select").value, system: $("p-system").value }),
+  });
+  state.session = { id: data.session.id, title: data.session.title, model: data.session.model,
+                    system: "", temperature: 0.7, top_p: 0.9, max_tokens: 0, messages: [] };
+  await loadSessions();
+  await openSession(data.session.id);
+  refreshStatus();
+}
+
+async function openSession(id) {
+  const data = await api("/api/sessions/" + id);
+  state.session = data.session;
+  state.images = [];
+  renderAttachments();
+  syncParams();
+  renderSessions();
+  renderMessages();
+}
+
+/* ---------------- 消息渲染 ---------------- */
+function escapeHtml(s) {
+  return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderMarkdown(text) {
+  const blocks = [];
+  let src = escapeHtml(text).replace(/```([\s\S]*?)```/g, (all, code) => {
+    blocks.push(code.replace(/^\w*\n/, ""));
+    return "\u0000BLOCK" + (blocks.length - 1) + "\u0000";
+  });
+  src = src
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.*)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.*)$/gm, "<h1>$1</h1>")
+    .replace(/^\s*[-*] (.*)$/gm, "<li>$1</li>")
+    .replace(/^\s*\d+\. (.*)$/gm, "<li>$1</li>");
+  src = src.replace(/(<li>[\s\S]*?<\/li>)(?![\s\S]*?<li>)/, "$1");
+  src = src.replace(/(?:<li>[\s\S]*?<\/li>)+/g, (m) => "<ul>" + m + "</ul>");
+  const paragraphs = src.split(/\n{2,}/).map((chunk) => {
+    if (/^\s*<(h\d|ul|pre|li)/.test(chunk.trim())) return chunk;
+    if (/\u0000BLOCK/.test(chunk)) return chunk.replace(/\n/g, "<br />");
+    return "<p>" + chunk.replace(/\n/g, "<br />") + "</p>";
+  }).join("");
+  return paragraphs.replace(/\u0000BLOCK(\d+)\u0000/g, (all, i) => "<pre><code>" + blocks[Number(i)] + "</code></pre>");
+}
+
+function statsLine(stats) {
+  if (!stats || !stats.model) return "";
+  const bits = [];
+  bits.push("模型 " + stats.model);
+  if (stats.images) bits.push("图片 " + stats.images + " 张");
+  bits.push("首包 " + (stats.ttft_ms || 0) + " ms");
+  bits.push("总耗时 " + (stats.total_ms || 0) + " ms");
+  bits.push(stats.chars + " 字");
+  bits.push((stats.chars_per_s || 0) + " 字/秒");
+  if (stats.usage && stats.usage.completion_tokens) bits.push("tokens " + stats.usage.completion_tokens);
+  return bits.join("  ·  ");
+}
+
+function messageNode(msg) {
+  const wrap = document.createElement("div");
+  wrap.className = "msg " + (msg.role === "user" ? "user" : "assistant") + (msg.error ? " err" : "");
+  const who = document.createElement("div");
+  who.className = "who";
+  who.textContent = msg.role === "user" ? "我" : "模型";
+  if (msg.images && msg.images.length) {
+    const badge = document.createElement("span");
+    badge.textContent = "附 " + msg.images.length + " 张图片";
+    who.appendChild(badge);
+  }
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  if (msg.images && msg.images.length && msg.images[0].data) {
+    const thumbs = document.createElement("div");
+    thumbs.className = "thumbs";
+    thumbs.style.marginBottom = "8px";
+    msg.images.forEach((img) => {
+      const el = document.createElement("img");
+      el.src = "data:" + img.mime + ";base64," + img.data;
+      el.onclick = () => window.open(el.src, "_blank");
+      thumbs.appendChild(el);
+    });
+    bubble.appendChild(thumbs);
+  }
+  const body = document.createElement("div");
+  body.className = "body";
+  body.innerHTML = renderMarkdown(msg.content || "");
+  bubble.appendChild(body);
+  if (msg.error) {
+    const err = document.createElement("div");
+    err.style.color = "var(--err)";
+    err.style.marginTop = "6px";
+    err.textContent = "错误：" + msg.error;
+    bubble.appendChild(err);
+  }
+  wrap.append(who, bubble);
+  const buffer = document.createElement("div");
+  buffer.className = "trace-buffer";
+  wrap.appendChild(buffer);
+
+  if (msg.role !== "user" && msg.stats && msg.stats.model) {
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = statsLine(msg.stats);
+    wrap.appendChild(meta);
+
+    // 决策轨迹
+    const trace = msg.trace || [];
+    if (trace.length) {
+      const traceWrap = document.createElement("div");
+      traceWrap.className = "trace-wrap";
+      const toggle = document.createElement("details");
+      toggle.innerHTML = "<summary style='cursor:pointer;color:var(--accent);font-size:12px;padding:4px 0'>调度决策 " + trace.length + " 步</summary>";
+      const list = document.createElement("ol");
+      list.style.cssText = "margin:4px 0 0 20px;padding:0;list-style:decimal;color:#999;font-size:12px;line-height:1.6;font-family:monospace;";
+      trace.forEach((line) => {
+        const li = document.createElement("li");
+        li.textContent = line;
+        list.appendChild(li);
+      });
+      toggle.appendChild(list);
+      traceWrap.appendChild(toggle);
+      wrap.appendChild(traceWrap);
+    }
+  }
+  return wrap;
+}
+
+function renderMessages() {
+  const box = $("messages");
+  box.innerHTML = "";
+  const msgs = (state.session && state.session.messages) || [];
+  if (!msgs.length) {
+    box.innerHTML = '<div class="empty">选择模型后开始对话，可直接测试文本能力与多模态图片理解。<br />支持：<span class="kbd">Enter</span> 发送 · <span class="kbd">Shift+Enter</span> 换行 · 粘贴 / 拖入图片</div>';
+    return;
+  }
+  msgs.forEach((m) => box.appendChild(messageNode(m)));
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ---------------- 附件 ---------------- */
+function renderAttachments() {
+  const box = $("attachments");
+  box.innerHTML = "";
+  state.images.forEach((img, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "attach";
+    const el = document.createElement("img");
+    el.src = img.dataUri;
+    const x = document.createElement("button");
+    x.textContent = "×";
+    x.onclick = () => { state.images.splice(idx, 1); renderAttachments(); };
+    wrap.append(el, x);
+    box.appendChild(wrap);
+  });
+  updateSendHint();
+}
+
+function updateSendHint() {
+  const model = currentModel();
+  const hint = $("send-hint");
+  if (state.images.length && model && !model.multimodal) {
+    hint.textContent = "当前模型未标注多模态，图片可能被忽略";
+    hint.style.color = "var(--warn)";
+  } else {
+    hint.textContent = "";
+  }
+}
+
+function addImageFile(file) {
+  if (!file || !/^image\//.test(file.type)) return;
+  if (state.images.length >= 4) { alert("单条消息最多 4 张图片"); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.images.push({ name: file.name || "pasted.png", mime: file.type, dataUri: reader.result });
+    renderAttachments();
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------------- 发送 ---------------- */
+async function send() {
+  if (state.streaming) return;
+  if (!state.session) await newSession();
+  const content = $("input").value.trim();
+  if (!content && !state.images.length) return;
+  const model = $("model-select").value;
+  if (!model) { alert("请先选择模型"); return; }
+
+  const payload = {
+    session_id: state.session.id,
+    model: model,
+    content: content,
+    images: state.images.map((i) => ({ name: i.name, mime: i.mime, data: i.dataUri })),
+    params: {
+      system: $("p-system").value,
+      temperature: Number($("p-temp").value || 0.7),
+      top_p: Number($("p-topp").value || 0.9),
+      max_tokens: Number($("p-maxtok").value || 0),
+    },
+  };
+
+  const localImages = state.images.slice();
+  state.images = [];
+  renderAttachments();
+  $("input").value = "";
+
+  state.session.messages.push({ role: "user", content: content, images: localImages.map((i) => ({
+    name: i.name, mime: i.mime, size: 0, data: i.dataUri.split(",")[1] })), stats: {} });
+  renderMessages();
+
+  const pending = { role: "assistant", content: "", images: [], stats: {}, error: "" };
+  state.session.messages.push(pending);
+  const node = messageNode(pending);
+  $("messages").appendChild(node);
+  const body = node.querySelector(".body");
+  body.innerHTML = '<span class="caret"></span>';
+  $("messages").scrollTop = $("messages").scrollHeight;
+
+  state.streaming = true;
+  $("btn-send").disabled = true;
+  $("btn-send").textContent = "生成中…";
+  const controller = new AbortController();
+  state.controller = controller;
+
+  let buffer = "";
+  const applyDelta = () => {
+    body.innerHTML = renderMarkdown(buffer) + '<span class="caret"></span>';
+    $("messages").scrollTop = $("messages").scrollHeight;
+  };
+
+  try {
+    const resp = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    if (!resp.ok || !resp.body) {
+      const txt = await resp.text();
+      let msg = txt;
+      try { msg = JSON.parse(txt).error || txt; } catch (e) {}
+      throw new Error(msg || ("HTTP " + resp.status));
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let raw = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      raw += decoder.decode(value, { stream: true });
+      let idx;
+      while ((idx = raw.indexOf("\n\n")) >= 0) {
+        const frame = raw.slice(0, idx);
+        raw = raw.slice(idx + 2);
+        frame.split("\n").forEach((line) => {
+          if (!line.startsWith("data:")) return;
+          let evt = null;
+          try { evt = JSON.parse(line.slice(5).trim()); } catch (e) { return; }
+          if (evt.type === "delta" && evt.text) { buffer += evt.text; applyDelta(); }
+          else if (evt.type === "done") { pending.stats = evt.stats || {}; pending.trace = evt.trace || []; }
+          else if (evt.type === "error") { pending.error = evt.message || "调用失败"; }
+          else if (evt.type === "start") { pending.stats.model = evt.model; }
+        });
+      }
+    }
+  } catch (e) {
+    pending.error = e.name === "AbortError" ? "已中断" : e.message;
+  } finally {
+    state.streaming = false;
+    state.controller = null;
+    $("btn-send").disabled = false;
+    $("btn-send").textContent = "发送";
+    pending.content = buffer;
+    renderMessages();
+    await loadSessions();
+    renderSessions();
+    refreshStatus();
+    refreshTds();
+  }
+}
+
+/* ---------------- 事件绑定 ---------------- */
+$("btn-send").onclick = send;
+$("btn-new").onclick = newSession;
+$("btn-apply").onclick = async () => {
+  if (!state.session) return;
+  const data = await api("/api/sessions/" + state.session.id + "/params", {
+    method: "POST",
+    body: JSON.stringify({
+      model: $("model-select").value,
+      system: $("p-system").value,
+      temperature: Number($("p-temp").value || 0.7),
+      top_p: Number($("p-topp").value || 0.9),
+      max_tokens: Number($("p-maxtok").value || 0),
+    }),
+  });
+  state.session = data.session;
+  renderSessions();
+  $("st-model").textContent = "模型：" + state.session.model;
+};
+$("btn-clear").onclick = async () => {
+  if (!state.session) return;
+  await api("/api/sessions/" + state.session.id + "/clear", { method: "POST" });
+  state.session.messages = [];
+  renderMessages();
+  await loadSessions();
+};
+$("btn-tds-save").onclick = saveTds;
+$("btn-tds-refresh").onclick = refreshTds;
+$("model-select").onchange = () => { renderModelMeta(); updateSendHint(); };
+$("file").onchange = (e) => { Array.from(e.target.files || []).forEach(addImageFile); e.target.value = ""; };
+$("input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+});
+document.addEventListener("paste", (e) => {
+  const items = (e.clipboardData && e.clipboardData.items) || [];
+  let handled = false;
+  for (const it of items) {
+    if (it.type && it.type.indexOf("image/") === 0) { addImageFile(it.getAsFile()); handled = true; }
+  }
+  if (handled) e.preventDefault();
+});
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => {
+  if (!e.dataTransfer) return;
+  const files = Array.from(e.dataTransfer.files || []);
+  if (files.length) { e.preventDefault(); files.forEach(addImageFile); }
+});
+
+/* ---------------- 启动 ---------------- */
+(async function init() {
+  await loadModels();
+  await newSession();
+  refreshStatus();
+  refreshTds();
+  setInterval(refreshStatus, 6000);
+  setInterval(refreshTds, 10000);
+})();
+</script>
+</body>
+</html>

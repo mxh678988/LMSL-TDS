@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>太易 · 紫梅引擎舱</title>
+<style>
+  :root{
+    --bg-0:#05060a; --bg-1:#0a0b12; --bg-2:#10131f;
+    --panel:rgba(16,19,31,.72); --panel-2:rgba(24,28,46,.6);
+    --line:rgba(214,180,102,.16); --line-strong:rgba(230,198,107,.45);
+    --fg:#f2ecd9; --fg-dim:#9d9378;
+    --gold:#e6c66b; --gold-2:#b78f3f; --gold-soft:rgba(230,198,107,.1);
+    --ok:#4cc38a; --warn:#e0a93e; --err:#f2555a;
+    --jin:#e6c66b; --mu:#4cc38a; --shui:#4a9df5; --huo:#f2555a; --tu:#c9a86a;
+    --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:radial-gradient(1200px 700px at 85% -10%, rgba(230,198,107,.08), transparent 60%),
+               radial-gradient(900px 600px at -10% 110%, rgba(74,157,245,.06), transparent 55%),
+               linear-gradient(165deg,var(--bg-0) 0%,var(--bg-1) 52%,var(--bg-2) 100%);
+    color:var(--fg);font:14px/1.6 "Microsoft YaHei","PingFang SC",-apple-system,sans-serif;
+    min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;
+  }
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(230,198,107,.012) 3px 4px);}
+  .gold-line{position:fixed;left:0;right:0;height:1px;z-index:9;pointer-events:none;
+    background:linear-gradient(90deg, transparent, rgba(230,198,107,.55), transparent);}
+  .gold-line.top{top:0}.gold-line.bottom{bottom:0}
+  .wrap{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:14px 20px 22px;width:100%}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 18px;
+    border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg, rgba(22,26,44,.85), rgba(12,14,24,.82));
+    backdrop-filter:blur(8px);box-shadow:0 8px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);}
+  .logo{width:54px;height:54px;border-radius:50%;object-fit:cover;flex-shrink:0;
+    border:1px solid var(--line-strong);box-shadow:0 0 18px rgba(230,198,107,.35), inset 0 0 10px rgba(0,0,0,.6);}
+  .brand{display:flex;flex-direction:column;line-height:1.25}
+  .brand-title{font-size:19px;font-weight:800;letter-spacing:3px;
+    background:linear-gradient(100deg,#f4e6b8,var(--gold) 45%,#a97e2f);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 12px rgba(230,198,107,.25));}
+  .brand-sub{font-size:10.5px;letter-spacing:4px;color:var(--fg-dim);margin-top:4px}
+  .brand-sub b{color:var(--gold-2);font-weight:600}
+  .spacer{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .badge{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--fg-dim);
+    border:1px solid var(--line);border-radius:20px;padding:4px 12px;
+    background:rgba(255,255,255,.025);white-space:nowrap;}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--fg-dim)}
+  .badge .dot.on{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+  .badge .dot.warn{background:var(--warn);box-shadow:0 0 9px var(--warn)}
+  .badge .dot.off{background:var(--err);box-shadow:0 0 9px var(--err)}
+  .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr) minmax(0,5fr);gap:16px;margin-top:16px;align-items:start}
+  @media (max-width:1280px){.grid{grid-template-columns:1fr}}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .card{border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+    background:linear-gradient(180deg, rgba(16,19,31,.78), rgba(11,13,22,.72));
+    backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.38);}
+  .card-title{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:700;
+    letter-spacing:2px;color:var(--gold);margin-bottom:12px;}
+  .card-title::before{content:"";width:4px;height:14px;border-radius:2px;
+    background:linear-gradient(180deg,var(--gold),var(--gold-2));box-shadow:0 0 8px rgba(230,198,107,.5)}
+  .card-title .sub{margin-left:auto;font-size:11px;color:var(--fg-dim);font-weight:400;letter-spacing:1px;line-height:1.4;white-space:nowrap}
+  .pan-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .pan{position:relative;width:310px;height:310px;flex-shrink:0;margin:0 auto}
+  .pan::before{content:"";position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle, rgba(230,198,107,.05), transparent 62%);}
+  .ring{position:absolute;border-radius:50%;border:1px solid rgba(230,198,107,.22)}
+  .ring.r1{inset:6px}.ring.r2{inset:44px;border-style:dashed;opacity:.55}
+  .ring.r3{inset:82px;border-color:rgba(230,198,107,.4);box-shadow:0 0 22px rgba(230,198,107,.12) inset}
+  .cross{position:absolute;left:50%;top:6px;bottom:6px;width:1px;
+    background:linear-gradient(180deg,transparent,rgba(230,198,107,.18),transparent);transform:translateX(-50%)}
+  .cross.h{left:6px;right:6px;top:50%;width:auto;height:1px;transform:translateY(-50%)}
+  .bagua{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;
+    border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:1px solid var(--line);background:rgba(10,12,20,.85);cursor:pointer;overflow:hidden;
+    transition:transform .18s, box-shadow .18s, border-color .18s;z-index:2;box-shadow:0 4px 14px rgba(0,0,0,.5);}
+  .bagua:hover{transform:scale(1.08);z-index:5}
+  .bagua .g{font-size:19px;font-weight:800;letter-spacing:1px;line-height:1.1;white-space:nowrap}
+  .bagua .d{font-size:9.5px;color:var(--fg-dim);margin-top:2px;letter-spacing:.5px;white-space:nowrap;max-width:58px;overflow:hidden;text-overflow:ellipsis}
+  .bagua .w{font-size:9px;margin-top:1px;padding:0 6px;border-radius:8px;background:rgba(255,255,255,.06);white-space:nowrap}
+  .bagua.ming{border-color:var(--gold);animation:breathe 2.4s ease-in-out infinite}
+  .bagua.ming .g{color:var(--gold)}
+  @keyframes breathe{0%,100%{box-shadow:0 0 16px rgba(230,198,107,.4), inset 0 0 10px rgba(230,198,107,.14)}
+    50%{box-shadow:0 0 30px rgba(230,198,107,.7), inset 0 0 16px rgba(230,198,107,.24)}}
+  .bagua.rel-cai{border-color:var(--huo)}
+  .bagua.rel-shishang{border-color:var(--warn)}
+  .bagua.rel-bijie{border-color:#7b8aa8}
+  .bagua.rel-yin{border-color:var(--mu)}
+  .bagua.rel-guan{border-color:var(--shui)}
+  .center{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;z-index:3;
+    border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    background:radial-gradient(circle at 38% 32%, #241f12, #0a0c14 72%);
+    border:1px solid var(--line-strong);box-shadow:0 0 26px rgba(230,198,107,.4), inset 0 0 18px rgba(0,0,0,.7);}
+  .center .taiji{width:34px;height:34px;border-radius:50%;position:relative;overflow:hidden;
+    background:conic-gradient(from 0deg, #0a0c14 0 50%, var(--gold) 50% 100%);
+    box-shadow:0 0 10px rgba(230,198,107,.5);animation:spin 9s linear infinite;}
+  .center .taiji::before,.center .taiji::after{content:"";position:absolute;width:17px;height:17px;border-radius:50%;
+    background:#0a0c14;left:8.5px;top:0;}
+  .center .taiji::after{background:var(--gold);left:8.5px;top:17px;box-shadow:inset 0 0 0 4px #0a0c14}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .center .cm{font-size:15px;font-weight:800;color:var(--gold);letter-spacing:2px}
+  .center .cw{font-size:11px;color:var(--fg-dim);letter-spacing:3px}
+  .legend{display:flex;flex-direction:column;gap:7px;flex:1;min-width:230px}
+  .lg-row{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--fg-dim)}
+  .lg-row .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .lg-row b{color:var(--fg);font-weight:600}
+  .lg-row .pr{margin-left:auto;font-family:var(--mono);font-size:11px}
+  .ming-desc{margin-top:12px;font-size:12.5px;color:var(--fg-dim);line-height:1.8;
+    border-left:2px solid var(--gold-2);padding-left:12px;}
+  .ming-desc em{color:var(--gold);font-style:normal}
+  .order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--fg-dim)}
+  .order-head .hint{font-family:var(--mono);font-size:11px}
+  .evict-row{display:flex;align-items:center;gap:6px 10px;padding:8px 12px;border-radius:10px;margin-bottom:6px;flex-wrap:wrap;
+    background:rgba(255,255,255,.02);border:1px solid var(--line);}
+  .evict-row .idx{font-family:var(--mono);font-size:11px;color:var(--gold-2);width:22px;text-align:right;flex-shrink:0}
+  .evict-row .nm{font-weight:600;font-size:13.5px;width:96px;flex-shrink:0}
+  .evict-row .wx{font-size:10.5px;padding:1px 8px;border-radius:9px;background:rgba(255,255,255,.05);width:44px;text-align:center;flex-shrink:0}
+  .evict-row .rl{font-size:11.5px;color:var(--fg-dim);flex:1;min-width:70px;word-break:break-word}
+  .evict-row .bar{width:64px;height:7px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden;flex-shrink:0}
+  .evict-row .bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold-2),var(--gold));}
+  .evict-row .pv{font-family:var(--mono);font-size:11px;color:var(--gold);width:26px;text-align:right;flex-shrink:0}
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tab{font-size:12px;padding:6px 14px;border-radius:20px;border:1px solid var(--line);color:var(--fg-dim);cursor:pointer;background:rgba(255,255,255,.02);transition:all .15s}
+  .tab:hover{color:var(--fg)}
+  .tab.active{color:#14100a;background:linear-gradient(100deg,var(--gold),#e8d18a);border-color:var(--gold);font-weight:700}
+  .kv{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:12.5px;background:rgba(255,255,255,.02);margin-bottom:5px}
+  .kv .k{color:var(--fg-dim)}
+  .kv .v{font-family:var(--mono);color:var(--fg)}
+  .tag{display:inline-block;font-size:10px;padding:1px 8px;border-radius:9px;margin-right:5px}
+  .tag.low{background:rgba(76,195,138,.14);color:var(--ok);border:1px solid rgba(76,195,138,.3)}
+  .tag.medium{background:rgba(224,169,62,.14);color:var(--warn);border:1px solid rgba(224,169,62,.3)}
+  .tag.high{background:rgba(242,85,90,.14);color:var(--err);border:1px solid rgba(242,85,90,.3)}
+  .tag.on{background:rgba(230,198,107,.14);color:var(--gold);border:1px solid rgba(230,198,107,.35)}
+  .clog{max-height:190px;overflow:auto;font-size:11.5px;color:var(--fg-dim)}
+  .clog .item{padding:5px 8px;border-left:2px solid var(--line-strong);margin-bottom:6px;background:rgba(255,255,255,.015);border-radius:0 8px 8px 0;line-height:1.5}
+  .clog .item b{color:var(--fg)}
+  .tbox{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:900px){.tbox{grid-template-columns:1fr}}
+  .tcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.02)}
+  .tcard .th{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--fg);margin-bottom:6px}
+  .tcard .th .st{margin-left:auto;font-size:10px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+  .tcard .ds{font-size:11.5px;color:var(--fg-dim);line-height:1.6;margin-bottom:8px;word-break:break-word;padding-right:2px}
+  .tcard .ap{font-family:var(--mono);font-size:10.5px;color:var(--gold-2);word-break:break-all}
+  .wave{margin-top:10px;height:52px;width:100%;}
+  footer{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:16px;
+    font-size:11.5px;color:var(--fg-dim);border-top:1px solid var(--line);padding-top:12px}
+  .muted{color:var(--fg-dim)}
+  .btn{border:1px solid var(--line-strong);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gold);
+    background:var(--gold-soft);cursor:pointer;transition:all .15s;font-family:inherit}
+  .btn:hover{background:rgba(230,198,107,.2);box-shadow:0 0 12px rgba(230,198,107,.2)}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(230,198,107,.25);border-radius:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .empty{font-size:12px;color:var(--fg-dim);padding:12px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+</style>
+</head>
+<body>
+<div class="gold-line top"></div>
+<div class="wrap">
+  <header>
+    <img class="logo" src="assets/logo.png" alt="太易紫梅" />
+    <div class="brand">
+      <div class="brand-title">太易 · 紫梅引擎舱</div>
+      <div class="brand-sub">TAIYI <b>ZiMei</b> ENGINE BAY · 命宫为尊 卦象定序 生克制衡 自进化不辍</div>
+    </div>
+    <div class="spacer">
+      <a class="btn" href="/" style="text-decoration:none">← 返回桌面</a>
+      <span class="badge"><span class="dot on" id="st-online"></span><span id="st-online-txt">服务在线</span></span>
+      <span class="badge"><span class="dot warn" id="st-engine"></span>总体进化 <span id="st-engine-txt">默认关闭</span></span>
+      <span class="badge"><span class="dot on" id="st-pressure"></span>四象守卫 <span id="st-pressure-txt">开启</span></span>
+      <span class="badge" id="st-ver">v1.0.0</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 左列：紫梅卦象盘 -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">紫梅卦象盘 <span class="sub">点击卦位切换命宫</span></div>
+        <div class="pan-wrap">
+          <div class="pan" id="pan">
+            <div class="ring r1"></div>
+            <div class="ring r2"></div>
+            <div class="ring r3"></div>
+            <div class="cross"></div>
+            <div class="cross h"></div>
+            <div class="center">
+              <div class="taiji"></div>
+              <div class="cm" id="ming-cn">离 · 对话</div>
+              <div class="cw" id="ming-wx">火</div>
+            </div>
+          </div>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="ming-desc" id="ming-desc"></div>
+      </div>
+    </div>
+
+    <!-- 中列：动态淘汰序 -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">紫梅动态淘汰序 <span class="sub">梅花易数 · 动态卦象</span></div>
+        <div class="order-head"><span>命宫 <b id="oh-ming" style="color:var(--gold)">离 · 对话</b> 推演</span><span class="hint" id="oh-hint"></span></div>
+        <div id="order-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">主星 · 辅星 <span class="sub">紫微斗数 · 驻留判定</span></div>
+        <div class="tbox">
+          <div class="tcard"><div class="th">主星 <span class="st tag on">驻留</span></div><div class="ds">域内高频页（访问 ≥ 域中位数）掌吉凶，命中关键页必须保活。</div><div class="ap">classify_star()</div></div>
+          <div class="tcard"><div class="th">辅星 <span class="st tag medium">可杀</span></div><div class="ds">域内低频页（访问 &lt; 域中位数）佐助力，淘汰候选优先层。</div><div class="ap">classify_star()</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右列：进化引擎 + 测试接口 -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">自进化引擎 <span class="sub">双线 · 档案可回退</span></div>
+        <div class="tabs" id="evo-tabs">
+          <div class="tab active" data-t="software">总体进化</div>
+          <div class="tab" data-t="ip">IP 进化</div>
+        </div>
+        <div id="evo-body"><div class="empty">读取档案中…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">测试技术接口 <span class="sub">自研增量 · 分支预留</span></div>
+        <div class="tbox" id="tbox"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>内核接入：tds.kv.taiji_zimei · tds.evolution · tds.testing（零第三方依赖）</span>
+    <span id="ft-time" class="muted">—</span>
+  </footer>
+</div>
+<div class="gold-line bottom"></div>
+<script>
+"use strict";
+const $ = (id)=>document.getElementById(id);
+const REL_COLOR = {cai:"var(--huo)",shishang:"var(--warn)",bijie:"#7b8aa8",yin:"var(--mu)",guan:"var(--shui)",ming:"var(--gold)"};
+const REL_NAME = {cai:"财·我克",shishang:"食伤·我生",bijie:"比劫·同我",yin:"印·生我",guan:"官·克我",ming:"命宫·绝对"};
+const GUA_POS = [0,45,90,135,180,225,270,315];
+const DOMAINS = ["daima","jiansuo","tuxiang","gongju","shipin","duihua","qian","qita"];
+const GUA_CN = {daima:"乾",jiansuo:"坤",tuxiang:"震",gongju:"巽",shipin:"坎",duihua:"离",qian:"艮",qita:"兑"};
+let MING = "duihua";
+
+async function getJSON(p){const r=await fetch(p);return r.json();}
+
+function renderPan(data){
+  const pan=$("pan");
+  document.querySelectorAll(".bagua").forEach(n=>n.remove());
+  data.domains.forEach(d=>{
+    const el=document.createElement("div");
+    el.className="bagua rel-"+d.relation+(d.is_ming?" ming":"");
+    el.dataset.key=d.key;
+    el.innerHTML='<div class="g">'+GUA_CN[d.key]+'</div><div class="d">'+d.cn.split("·")[1]+'</div><div class="w" style="color:'+d.wuxing_hex+'">'+d.wuxing+'</div>';
+    const deg=GUA_POS[DOMAINS.indexOf(d.key)];
+    const rad=deg*Math.PI/180, R=118;
+    el.style.left=(155+R*Math.cos(rad))+"px";
+    el.style.top=(155+R*Math.sin(rad))+"px";
+    el.addEventListener("click",()=>{MING=d.key;loadZimei();});
+    pan.appendChild(el);
+  });
+  $("ming-cn").textContent=data.ming_cn;
+  $("ming-wx").textContent=data.ming_wuxing;
+  $("oh-ming").textContent=data.ming_cn;
+  $("oh-hint").textContent="命宫五行【"+data.ming_wuxing+"】生克推演";
+  const lg=$("legend"); lg.innerHTML="";
+  data.domains.filter(d=>!d.is_ming).sort((a,b)=>b.priority-a.priority).forEach(d=>{
+    lg.insertAdjacentHTML("beforeend",
+      '<div class="lg-row"><span class="sw" style="background:'+REL_COLOR[d.relation]+';box-shadow:0 0 8px '+REL_COLOR[d.relation]+'"></span><b>'+d.cn+'</b><span>'+REL_NAME[d.relation]+'</span><span class="pr">'+d.wuxing+' · p'+d.priority+'</span></div>');
+  });
+  const ming=data.domains.find(d=>d.is_ming);
+  $("ming-desc").innerHTML="当前命宫 <em>"+ming.cn+"（"+ming.wuxing+"）</em> 绝对保护、永不整层卸载；其余七卦按五行生克动态定序："+
+    "<em>我克者（财）先舍，我生者（食伤）次之，同我者（比劫）可舍，生我者（印）保留，克我者（官）最后动</em>。";
+  const ol=$("order-list"); ol.innerHTML="";
+  if(!data.order.length){ol.innerHTML='<div class="empty">无候选域</div>';return;}
+  const maxP=Math.max(...data.order.map(o=>o.priority));
+  data.order.forEach((o,i)=>{
+    ol.insertAdjacentHTML("beforeend",
+      '<div class="evict-row"><span class="idx">'+(i+1)+'</span><span class="nm">'+o.cn+'</span><span class="wx" style="color:'+o.wuxing_hex+';border:1px solid '+o.wuxing_hex+'55">'+o.wuxing+'</span><span class="rl" style="color:'+REL_COLOR[o.relation]+'">'+REL_NAME[o.relation]+'</span><span class="bar"><i style="width:'+Math.round(o.priority/maxP*100)+'%"></i></span><span class="pv">p'+o.priority+'</span></div>');
+  });
+}
+async function loadZimei(){const d=await getJSON("/api/zimei?ming="+MING);renderPan(d);}
+
+function evoRow(label,val,cls){return '<div class="kv"><span class="k">'+label+'</span><span class="v">'+val+'</span></div>';}
+function clogHtml(items,empty){
+  if(!items||!items.length)return '<div class="empty">'+empty+'</div>';
+  return '<div class="clog">'+items.map(c=>{
+    const t=c.ts?new Date(c.ts*1000).toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+    return '<div class="item"><b>'+t+' '+c.op+'</b> · '+c.path+(c.note?" · "+c.note:"")+'</div>';
+  }).join("")+'</div>';
+}
+async function loadEvo(){
+  const d=await getJSON("/api/evolution");
+  $("st-engine").className="dot "+(d.enabled?"on":"warn");
+  $("st-engine-txt").textContent=d.enabled?"已启用":"默认关闭";
+  $("st-pressure").className="dot "+(d.pressure_guard?"on":"off");
+  $("st-pressure-txt").textContent=d.pressure_guard?"开启":"关闭";
+  window._evo=d; renderEvoTab("software");
+}
+function renderEvoTab(t){
+  const d=window._evo; if(!d)return;
+  document.querySelectorAll("#evo-tabs .tab").forEach(n=>n.classList.toggle("active",n.dataset.t===t));
+  const b=$("evo-body");
+  if(t==="software"){
+    const s=d.software, n=d.params.length;
+    b.innerHTML=
+      '<div class="kv"><span class="k">引擎状态</span><span class="v">'+(d.enabled?"<span class='tag on'>已启用</span>":"<span class='tag medium'>默认关闭</span>")+'</span></div>'+
+      '<div class="kv"><span class="k">风险策略</span><span class="v">low 自动应用 · '+(d.auto_apply_low?"开":"关")+'</span></div>'+
+      '<div class="kv"><span class="k">高压/冻结守卫</span><span class="v">'+(d.pressure_guard?"开":"关")+'</span></div>'+
+      '<div class="kv"><span class="k">白名单参数</span><span class="v">'+n+' 项</span></div>'+
+      '<div style="margin:8px 0 6px;font-size:11.5px;color:var(--gold-2);letter-spacing:1px">最近变更档案</div>'+
+      clogHtml(s.changelog,"暂无进化档案（引擎默认关闭，未产生变更）");
+  }else{
+    const ip=d.ip, terms=Object.keys(ip.terms||{}).length, wts=Object.keys(ip.weights||{}).length;
+    b.innerHTML=
+      '<div class="kv"><span class="k">知识词条</span><span class="v">'+terms+' 条</span></div>'+
+      '<div class="kv"><span class="k">域权重</span><span class="v">'+wts+' 组</span></div>'+
+      '<div style="margin:8px 0 6px;font-size:11.5px;color:var(--gold-2);letter-spacing:1px">最近变更档案</div>'+
+      clogHtml(ip.changelog,"暂无 IP 进化档案");
+  }
+}
+async function loadTesting(){
+  const d=await getJSON("/api/testing");
+  const tb=$("tbox"); tb.innerHTML="";
+  d.components.forEach(c=>{
+    tb.insertAdjacentHTML("beforeend",
+      '<div class="tcard"><div class="th">'+c.cn+' <span class="st">'+c.key+'</span><span class="st tag on">就绪</span></div><div class="ds">'+c.desc+'</div><div class="ap">'+c.apis.join(" · ")+'</div></div>');
+  });
+  // 压力场景波形（SVG）
+  const sc=d.sample_scenario;
+  if(sc && Array.isArray(sc.ratios)){
+    const N=Math.min(sc.ratios.length,80), W=100, H=40;
+    const pts=sc.ratios.slice(0,N).map((v,i)=>((i/(N-1))*W).toFixed(1)+","+((1-v)*H).toFixed(1));
+    const svg='<svg class="wave" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polyline fill="none" stroke="var(--gold)" stroke-width="1.2" points="'+pts.join(" ")+'" opacity="0.9"/></svg>';
+    tb.insertAdjacentHTML("beforeend",'<div class="tcard" style="grid-column:1/-1"><div class="th">压力场景示例 <span class="st">'+sc.name+'</span><span class="st tag on">'+(sc.steps||N)+' 步</span></div><div class="ds">四象压力注入波形（sine_wave 模拟，用于 PressureInjector 守卫验证）</div>'+svg+'</div>');
+  }
+}
+async function loadStatus(){
+  const d=await getJSON("/api/status");
+  $("st-ver").textContent="v"+d.version;
+  $("st-online").className="dot on"; $("st-online-txt").textContent="服务在线 · "+d.app;
+  $("ft-time").textContent="更新于 "+(new Date()).toLocaleTimeString("zh-CN");
+}
+async function init(){
+  await Promise.all([loadStatus(),loadZimei(),loadEvo(),loadTesting()]);
+  $("ft-time").textContent="更新于 "+(new Date()).toLocaleTimeString("zh-CN");
+  setInterval(()=>{$("ft-time").textContent="更新于 "+(new Date()).toLocaleTimeString("zh-CN");},30000);
+}
+document.querySelectorAll("#evo-tabs .tab").forEach(n=>n.addEventListener("click",()=>renderEvoTab(n.dataset.t)));
+init();
+</script>
+</body>
+</html>
+
+</head>
+<body>
+<div class="gold-line top"></div>
+<div class="wrap">
+</div>
+<div class="gold-line bottom"></div>
+</body>
+</html>

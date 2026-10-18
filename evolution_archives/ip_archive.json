@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "line": "ip",
+  "created_at": 1792220726.5240035,
+  "updated_at": 1792220726.5256083,
+  "knowledge": {
+    "terms": {},
+    "weights": {},
+    "aliases": {}
+  },
+  "backups": [],
+  "changelog": []
+}

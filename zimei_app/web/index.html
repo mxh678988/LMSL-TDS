@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>太易 · 紫梅桌面</title>
+<style>
+  :root{
+    --bg-0:#05060a; --bg-1:#0a0b12; --bg-2:#10131f;
+    --line:rgba(214,180,102,.16); --line-strong:rgba(230,198,107,.45);
+    --fg:#f2ecd9; --fg-dim:#9d9378;
+    --gold:#e6c66b; --gold-2:#b78f3f; --gold-soft:rgba(230,198,107,.1);
+    --ok:#4cc38a; --warn:#e0a93e; --err:#f2555a;
+    --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:radial-gradient(1200px 700px at 85% -10%, rgba(230,198,107,.08), transparent 60%),
+               radial-gradient(900px 600px at -10% 110%, rgba(74,157,245,.06), transparent 55%),
+               linear-gradient(165deg,var(--bg-0) 0%,var(--bg-1) 52%,var(--bg-2) 100%);
+    color:var(--fg);font:14px/1.6 "Microsoft YaHei","PingFang SC",-apple-system,sans-serif;
+    min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;
+  }
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(230,198,107,.012) 3px 4px);}
+  .gold-line{position:fixed;left:0;right:0;height:1px;z-index:9;pointer-events:none;
+    background:linear-gradient(90deg, transparent, rgba(230,198,107,.55), transparent);}
+  .gold-line.top{top:0}.gold-line.bottom{bottom:0}
+  .wrap{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:14px 20px 22px;width:100%;display:flex;flex-direction:column;height:100vh}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 18px;
+    border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg, rgba(22,26,44,.85), rgba(12,14,24,.82));
+    backdrop-filter:blur(8px);box-shadow:0 8px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);}
+  .logo{width:54px;height:54px;border-radius:50%;object-fit:cover;flex-shrink:0;
+    border:1px solid var(--line-strong);box-shadow:0 0 18px rgba(230,198,107,.35), inset 0 0 10px rgba(0,0,0,.6);}
+  .brand{display:flex;flex-direction:column;line-height:1.25}
+  .brand-title{font-size:19px;font-weight:800;letter-spacing:3px;
+    background:linear-gradient(100deg,#f4e6b8,var(--gold) 45%,#a97e2f);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 12px rgba(230,198,107,.25));}
+  .brand-sub{font-size:10.5px;letter-spacing:4px;color:var(--fg-dim);margin-top:4px}
+  .brand-sub b{color:var(--gold-2);font-weight:600}
+  .spacer{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .badge{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--fg-dim);
+    border:1px solid var(--line);border-radius:20px;padding:4px 12px;
+    background:rgba(255,255,255,.025);white-space:nowrap;}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--fg-dim)}
+  .badge .dot.on{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+  .badge .dot.warn{background:var(--warn);box-shadow:0 0 9px var(--warn)}
+  .badge .dot.off{background:var(--err);box-shadow:0 0 9px var(--err)}
+  .grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:16px;margin-top:16px;flex:1;min-height:0}
+  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}
+  .card{border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+    background:linear-gradient(180deg, rgba(16,19,31,.78), rgba(11,13,22,.72));
+    backdrop-filter:blur(6px);box-shadow:0 6px 24px rgba(0,0,0,.38);}
+  .card-title{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:700;
+    letter-spacing:2px;color:var(--gold);margin-bottom:12px;}
+  .card-title::before{content:"";width:4px;height:14px;border-radius:2px;
+    background:linear-gradient(180deg,var(--gold),var(--gold-2));box-shadow:0 0 8px rgba(230,198,107,.5)}
+  .card-title .sub{margin-left:auto;font-size:11px;color:var(--fg-dim);font-weight:400;letter-spacing:1px;line-height:1.4;white-space:nowrap}
+  .btn{border:1px solid var(--line-strong);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gold);
+    background:var(--gold-soft);cursor:pointer;transition:all .15s;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:rgba(230,198,107,.2);box-shadow:0 0 12px rgba(230,198,107,.2)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .chat{display:flex;flex-direction:column;min-height:0;flex:1}
+  .chat-box{flex:1;overflow-y:auto;min-height:200px;display:flex;flex-direction:column;gap:12px;padding:4px 2px}
+  .msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+  .msg.user{align-self:flex-end;background:linear-gradient(135deg, rgba(230,198,107,.14), rgba(230,198,107,.05));
+    border:1px solid rgba(230,198,107,.3);border-bottom-right-radius:4px}
+  .msg.bot{align-self:flex-start;background:rgba(255,255,255,.03);border:1px solid var(--line);border-bottom-left-radius:4px}
+  .msg.bot .tag{display:inline-block;font-size:10px;color:var(--gold-2);font-family:var(--mono);margin-bottom:4px}
+  .msg.err{border-color:rgba(242,85,90,.4);color:#ffb3b6}
+  .chat-tools{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap}
+  .chat-tools select,.chat-tools input{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;
+    color:var(--fg);font-size:12.5px;padding:9px 12px;font-family:inherit;outline:none}
+  .chat-tools select:focus,.chat-tools input:focus{border-color:var(--line-strong)}
+  .chat-tools select{max-width:46%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+  .chat-tools input{flex:1;min-width:120px}
+  .chat-tools .btn{padding:9px 18px;border-radius:10px;line-height:1}
+  .empty{font-size:12px;color:var(--fg-dim);padding:14px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+  .typing{display:inline-flex;gap:4px;align-items:center}
+  .typing i{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 1s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+  .branch{display:flex;flex-direction:column;gap:14px}
+  .bcard{border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:rgba(255,255,255,.02);cursor:pointer;transition:all .16s}
+  .bcard:hover{border-color:var(--line-strong);box-shadow:0 0 16px rgba(230,198,107,.08)}
+  .bcard .bhead{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:var(--fg);margin-bottom:6px}
+  .bcard .bhead .st{margin-left:auto;font-size:10px;font-weight:400;line-height:1;flex-shrink:0;margin-right:2px}
+  .bcard .bhead .icon{font-size:14px}
+  .bcard .bdesc{font-size:11.5px;color:var(--fg-dim);line-height:1.6;margin-bottom:10px;word-break:break-word}
+  .bcard .bmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--gold-2);word-break:break-all}
+  .engine-status{display:flex;align-items:center;gap:10px;border:1px solid rgba(230,198,107,.4);border-radius:12px;
+    padding:10px 13px;background:linear-gradient(135deg, rgba(230,198,107,.1), rgba(230,198,107,.02));margin-bottom:8px}
+  .engine-status .e-dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:breathe 2.2s ease-in-out infinite;flex-shrink:0}
+  @keyframes breathe{0%,100%{box-shadow:0 0 8px rgba(76,195,138,.5)}50%{box-shadow:0 0 16px rgba(76,195,138,.9)}}
+  .engine-status .e-txt{font-size:13px;color:var(--fg);font-weight:600;letter-spacing:1px}
+  .engine-status .e-sub{font-size:10.5px;color:var(--fg-dim);margin-left:auto}
+  .tag{display:inline-block;font-size:10px;padding:1px 8px;border-radius:9px;background:rgba(255,255,255,.05);color:var(--fg-dim);white-space:nowrap}
+  .tag.on{background:rgba(76,195,138,.14);color:var(--ok)}
+  .tag.off{background:rgba(242,85,90,.12);color:#ff9a9d}
+  footer{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:14px;
+    font-size:11.5px;color:var(--fg-dim);border-top:1px solid var(--line);padding-top:10px}
+  footer span{min-width:0;white-space:normal}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(230,198,107,.25);border-radius:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div class="gold-line top"></div>
+<div class="wrap">
+  <header>
+    <img class="logo" src="assets/logo.png" alt="太易紫梅" />
+    <div class="brand">
+      <div class="brand-title">太易 · 紫梅桌面</div>
+      <div class="brand-sub">TAIYI <b>ZiMei</b> DESKTOP · 调度内核 太极LLM 数据填喂 对话 多模态</div>
+    </div>
+    <div class="spacer">
+      <span class="badge"><span class="dot on" id="st-kernel"></span>调度内核 <span id="st-kernel-txt">就绪</span></span>
+      <span class="badge"><span class="dot" id="st-model"></span>模型 <span id="st-model-txt">探测中</span></span>
+      <span class="badge"><span class="dot" id="st-comfy"></span>创作台 <span id="st-comfy-txt">探测中</span></span>
+      <span class="badge" id="st-ver">v1.0.0</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 左列：太极chat 对话 -->
+    <div class="col">
+      <div class="card chat">
+        <div class="card-title">太极 · 对话 <span class="sub" id="chat-sub">探测本地 Ollama</span></div>
+        <div class="chat-box" id="chat-box">
+          <div class="empty">命盘已启，卦序待命。输入消息开始对话。</div>
+        </div>
+        <div class="chat-tools">
+          <select id="model-sel" title="模型"><option value="">等待探测…</option></select>
+          <input id="msg-input" type="text" placeholder="输入消息，回车发送…" autocomplete="off" />
+          <button class="btn" id="send-btn">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右列：五大分支入口 -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">五大分支 <span class="sub">终端桌面产品</span></div>
+        <div class="branch">
+          <div class="engine-status">
+            <div class="e-dot"></div>
+            <div class="e-txt">智能调度已开启</div>
+            <div class="e-sub">紫梅内核运行中</div>
+          </div>
+          <div class="bcard" onclick="location.href='/engine'">
+            <div class="bhead"><span class="icon">☯</span>引擎舱 · TDS 调度内核
+              <span class="st tag on">已开启</span></div>
+            <div class="bdesc">命宫定序 · 八卦淘汰 · 生克解释 · 自进化双线引擎。点击进入调度控制台。</div>
+            <div class="bmeta">/engine</div>
+          </div>
+          <div class="bcard" id="bc-chat">
+            <div class="bhead"><span class="icon">言</span>太极chat · 文字交互
+              <span class="st tag" id="tag-chat">探测中</span></div>
+            <div class="bdesc">本地 Ollama 对话代理，零第三方依赖，隐私不出本机。</div>
+            <div class="bmeta" id="meta-chat">探测 Ollama…</div>
+          </div>
+          <div class="bcard" id="bc-studio">
+            <div class="bhead"><span class="icon">创</span>创作台 · 多模态交互
+              <span class="st tag" id="tag-studio">探测中</span></div>
+            <div class="bdesc">ComfyUI 文生图 / 文生视频工作台，竖版 720x1280 短视频生产。</div>
+            <div class="bmeta" id="meta-studio">探测 ComfyUI…</div>
+          </div>
+          <div class="bcard" id="bc-models">
+            <div class="bhead"><span class="icon">模</span>模型管理 · 太极LLM
+              <span class="st tag" id="tag-models">探测中</span></div>
+            <div class="bdesc">本地模型清单与显存占用，为显存受限场景做调度决策。</div>
+            <div class="bmeta" id="meta-models">探测 Ollama…</div>
+          </div>
+          <div class="bcard" id="bc-kb">
+            <div class="bhead"><span class="icon">库</span>知识库 · 数据模型填喂
+              <span class="st tag" id="tag-kb">探测中</span></div>
+            <div class="bdesc">只读索引工程知识目录，沉淀留档、问答与归档管理。</div>
+            <div class="bmeta" id="meta-kb">扫描知识目录…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>太易 · 紫梅桌面 v1.0.0 · 零第三方依赖</span>
+    <span>命宫为尊 · 卦象定序 · 生克制衡 · 自进化不辍</span>
+  </footer>
+</div>
+<div class="gold-line bottom"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const chatBox = $("chat-box"), modelSel = $("model-sel");
+let models = [];
+
+function addMsg(text, who) {
+  const el = document.createElement("div");
+  el.className = "msg " + who;
+  el.textContent = text;
+  chatBox.appendChild(el);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return el;
+}
+function setBadge(id, txt, state) {
+  const el = $(id);
+  if (el) el.textContent = txt;
+  const dot = el && el.previousElementSibling;
+  if (dot && dot.classList) {
+    dot.classList.remove("on", "warn", "off");
+    if (state) dot.classList.add(state);
+  }
+}
+function setMeta(prefix, txt, tagId, state) {
+  const t = $(tagId);
+  if (t) { t.textContent = txt; t.className = "st tag " + (state || ""); }
+}
+
+async function boot() {
+  try {
+    const st = await (await fetch("/api/status")).json();
+    setBadge("st-kernel-txt", "就绪");
+    $("st-ver").textContent = "v" + st.version;
+  } catch (e) { setBadge("st-kernel-txt", "离线", "off"); }
+
+  // 模型管理 + 对话模型下拉
+  try {
+    const m = await (await fetch("/api/models")).json();
+    if (m.available) {
+      models = m.models || [];
+      setBadge("st-model-txt", models.length + " 个", "on");
+      setMeta("", "本地 Ollama · " + models.length + " 模型", "tag-models", "on");
+      $("meta-models").textContent = "Ollama " + (m.url || "");
+      modelSel.innerHTML = "";
+      models.forEach((x) => {
+        const o = document.createElement("option");
+        o.value = x.name; o.textContent = x.name + " (" + x.size_gb + " GB)";
+        modelSel.appendChild(o);
+      });
+      $("chat-sub").textContent = "本地 Ollama 就绪 · " + models.length + " 模型";
+    } else {
+      setBadge("st-model-txt", "未运行", "off");
+      setMeta("", "未运行", "tag-models", "off");
+      $("meta-models").textContent = "Ollama 未启动（127.0.0.1:11434）";
+      $("chat-sub").textContent = "Ollama 未运行";
+    }
+  } catch (e) {
+    setBadge("st-model-txt", "未知", "off");
+    setMeta("", "未知", "tag-models", "off");
+  }
+
+  // 创作台 ComfyUI
+  try {
+    const c = await (await fetch("/api/comfy")).json();
+    if (c.available) {
+      setBadge("st-comfy-txt", "在线", "on");
+      setMeta("", "在线", "tag-studio", "on");
+      const dev = (c.devices && c.devices[0]) || {};
+      $("meta-studio").textContent = "ComfyUI " + (c.comfy_version || "") + " · VRAM " + (dev.vram_free_gb || "?") + "G 空闲";
+    } else {
+      setBadge("st-comfy-txt", "离线", "off");
+      setMeta("", "离线", "tag-studio", "off");
+      $("meta-studio").textContent = "ComfyUI 未运行（127.0.0.1:8188）";
+    }
+  } catch (e) { setBadge("st-comfy-txt", "未知", "off"); }
+
+  // 知识库
+  try {
+    const k = await (await fetch("/api/kb")).json();
+    setMeta("", k.count + " 文件", "tag-kb", "on");
+    $("meta-kb").textContent = (k.roots || []).join(" / ") + " · " + k.count + " 篇";
+  } catch (e) { setMeta("", "不可用", "tag-kb", "off"); }
+}
+
+async function sendMsg() {
+  const input = $("msg-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  addMsg(text, "user");
+  const model = modelSel.value || "";
+  const wait = addMsg("", "bot");
+  wait.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+  wait.className = "msg bot";
+  try {
+    const r = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, model: model || undefined }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      wait.innerHTML = "";
+      wait.textContent = d.content || "（空回复）";
+      const tag = document.createElement("div");
+      tag.className = "tag";
+      tag.textContent = d.model + " · " + (d.eval_count || 0) + " tok · " + (d.eval_duration_ms || 0) + " ms";
+      wait.appendChild(tag);
+    } else {
+      wait.className = "msg bot err";
+      wait.textContent = (d.error || "未知错误") + (d.hint ? "\n" + d.hint : "");
+    }
+  } catch (e) {
+    wait.className = "msg bot err";
+    wait.textContent = "请求失败：" + e;
+  }
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+$("send-btn").addEventListener("click", sendMsg);
+$("msg-input").addEventListener("keydown", (e) => { if (e.key === "Enter") sendMsg(); });
+boot();
+</script>
+</body>
+</html>

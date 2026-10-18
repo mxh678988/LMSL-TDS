@@ -1,0 +1,63 @@
+{
+  "_comment": [
+    "内置模型目录（数据文件，非代码依赖）。",
+    "字段说明：repo/files 仅为公开分发源标识，不含任何宿主模块引用；",
+    "repo 名与文件名一律以 probe_entry() 的远端清单为准，未校验前 verified=false。",
+    "如需替换为自有或镜像分发源，直接编辑本文件，或通过环境变量",
+    "TDS_REGISTRY_CATALOG 指向的外部 JSON 覆盖同名 key。"
+  ],
+  "models": [
+    {
+      "key": "flux.text_encoder.t5xxl.fp8",
+      "repo": "comfyanonymous/flux_text_encoders",
+      "files": ["t5xxl_fp8_e4m3fn.safetensors"],
+      "domain": "text_encoder",
+      "quant_bits": 8,
+      "tags": ["flux", "t5"],
+      "note": "文本编码器·半精度存储的量化档"
+    },
+    {
+      "key": "flux.text_encoder.t5xxl.fp16",
+      "repo": "comfyanonymous/flux_text_encoders",
+      "files": ["t5xxl_fp16.safetensors"],
+      "domain": "text_encoder",
+      "quant_bits": 16,
+      "tags": ["flux", "t5"],
+      "note": "文本编码器·全精度档（显存换精度）"
+    },
+    {
+      "key": "flux.text_encoder.clip_l",
+      "repo": "comfyanonymous/flux_text_encoders",
+      "files": ["clip_l.safetensors"],
+      "domain": "text_encoder",
+      "tags": ["flux", "clip"],
+      "note": "文本编码器·双塔之 CLIP-L"
+    },
+    {
+      "key": "flux.vae",
+      "repo": "black-forest-labs/FLUX.1-dev",
+      "files": ["ae.safetensors"],
+      "domain": "vae",
+      "tags": ["flux"],
+      "note": "自编码器"
+    },
+    {
+      "key": "flux.diffusion.dev",
+      "repo": "black-forest-labs/FLUX.1-dev",
+      "files": ["flux1-dev.safetensors"],
+      "domain": "diffusion",
+      "quant_bits": 16,
+      "tags": ["flux"],
+      "note": "扩散主干（质量优先）"
+    },
+    {
+      "key": "flux.diffusion.schnell",
+      "repo": "black-forest-labs/FLUX.1-schnell",
+      "files": ["flux1-schnell.safetensors"],
+      "domain": "diffusion",
+      "quant_bits": 16,
+      "tags": ["flux", "fast"],
+      "note": "扩散主干（少步出图）"
+    }
+  ]
+}
