@@ -1,6 +1,6 @@
 # TDS 太极调度层 · 上架主文档（README）
 
-> 版本: 0.3.0（SDK 内核，含自有签名安全模块） | 日期: 2026-10-18 | 状态: GitHub 仓库/Release v0.3.0 已上架，ComfyUI Registry 已发布，PyPI 0.3.0 待发
+> 版本: 0.3.0（SDK 内核，含自有签名安全模块，当前为冻结基线） | 日期: 2026-10-18 | 状态: GitHub 仓库/Release v0.3.0、ComfyUI Registry、PyPI tds-core 0.3.0 三渠道全部上架完成
 > 校验: 本目录 CHECKSUMS.txt 含全部发布物 SHA256；wheel 另附 Ed25519 自有签名（公钥 tds_core_public.pem）
 
 ## 1. 一句话定位
@@ -81,6 +81,7 @@ pip install tds-core
 
 - [x] 1. AUTO 档真机复测 + 与 ComfyUI 原生 offload 真机对照（mean -7.75%，stdev 上升如实披露）
 - [x] 2. 打包 wheel + Ed25519 自有签名发布流程固化
-- [x] 3. 渠道上架（GitHub 仓库代码 + Release v0.3.0 已上架；ComfyUI Registry 已发布 lmsl-smart-offload v0.1.0；PyPI 0.3.0 待发）
+- [x] 3. 渠道上架（GitHub 仓库代码 + Release v0.3.0 已上架；ComfyUI Registry 已发布 lmsl-smart-offload v0.1.0；PyPI tds-core 0.3.0 已上架）
+- [x] 3.1 v0.3.0 冻结为基线（2026-10-18）：三渠道上架完成，按"无故障且无人操作连续达标即冻结、正常不可回退、仅故障触发回退"策略冻结当前版本；下一稳定小版本按季度排期
 - [ ] 4. 官网/文档站（对比页 + 集成文档，承接公众号流量）
 *（内容由AI生成，仅供参考）*
