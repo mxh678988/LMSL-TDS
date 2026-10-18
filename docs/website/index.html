@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDS 太极调度层 · 宿主无关显存调度 SDK</title>
+<style>
+:root{--ink:#1a1a1a;--muted:#666;--line:#e5e7eb;--bg:#fafafa;--accent:#b45309;--accent2:#78350f;--card:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+header{background:linear-gradient(135deg,#1c1917,#44403c);color:#fff;padding:56px 24px 48px;text-align:center}
+header h1{font-size:34px;letter-spacing:2px;margin-bottom:8px}
+header .sub{color:#d6d3d1;font-size:15px;max-width:760px;margin:0 auto}
+nav{background:#292524;padding:10px 0;position:sticky;top:0;z-index:10}
+nav .wrap{max-width:960px;margin:0 auto;display:flex;gap:8px;padding:0 16px;flex-wrap:wrap}
+nav a{color:#e7e5e4;text-decoration:none;padding:6px 16px;border-radius:6px;font-size:14px}
+nav a.active,nav a:hover{background:#b45309;color:#fff}
+main{max-width:960px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px 28px;margin-bottom:20px}
+h2{font-size:20px;color:var(--accent2);border-left:4px solid var(--accent);padding-left:10px;margin-bottom:14px}
+h3{font-size:16px;margin:12px 0 8px}
+p,li{font-size:14px;color:#333}
+ul{padding-left:20px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+th{background:#f5f5f4;color:var(--accent2)}
+.badge{display:inline-block;background:#dcfce7;color:#166534;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:600}
+.badge.gold{background:#fef3c7;color:#92400e}
+.badge.blue{background:#dbeafe;color:#1e40af}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:14px 0}
+.metric{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:16px;text-align:center}
+.metric .num{font-size:26px;font-weight:700;color:var(--accent2)}
+.metric .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#78350f;margin:12px 0}
+footer{max-width:960px;margin:32px auto;padding:20px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center}
+code{background:#f5f5f4;border:1px solid #e5e7eb;border-radius:4px;padding:1px 6px;font-size:13px;font-family:Consolas,monospace}
+pre{background:#1c1917;color:#e7e5e4;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;font-family:Consolas,monospace;line-height:1.5;margin:12px 0}
+pre code{background:none;border:none;color:inherit;padding:0}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+<h1>太极调度层 TDS</h1>
+<div class="sub">宿主无关的显存调度 SDK —— 在模型与显存之间建立统一的分类 / 分层 / 预判调度机制，让 12GB 级消费卡稳定运行 14GB 级模型</div>
+</header>
+<nav>
+<div class="wrap">
+<a href="index.html" class="active">首页</a>
+<a href="compare.html">能力对比</a>
+<a href="docs.html">集成文档</a>
+</div>
+</nav>
+<main>
+<div class="card">
+<h2>一句话定位</h2>
+<p>TDS（Taiji Dispatch Scheduler）是<strong>宿主无关的显存调度 SDK</strong>：以太极理论逻辑（阴阳分层、三才存储、四象压力、八卦域分类）做全域淘汰序推演与动态显存预算，实现按需加载与预取，在有限显存下最大化可用上下文与推理性能，且<strong>无宿主硬依赖</strong>。</p>
+<div style="margin-top:10px">
+<span class="badge">三渠道上架完成</span>
+<span class="badge gold">v0.3.0 冻结基线</span>
+<span class="badge blue">Ed25519 自有签名</span>
+</div>
+</div>
+
+<div class="card">
+<h2>三渠道上架状态</h2>
+<table>
+<tr><th>渠道</th><th>载体</th><th>状态</th></tr>
+<tr><td>PyPI</td><td>tds-core 0.3.0（<code>pip install tds-core</code>）</td><td><span class="badge">已上架</span></td></tr>
+<tr><td>GitHub</td><td>LMSL-TDS 仓库 + Release v0.3.0（wheel/.sig/公钥/CHECKSUMS/证据报告）</td><td><span class="badge">已上架</span></td></tr>
+<tr><td>ComfyUI Registry</td><td>lmsl-smart-offload v0.1.0</td><td><span class="badge">已上架</span></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>核心卖点（全部本机实测或仿真台证据，口径见证据包）</h2>
+<div class="metrics">
+<div class="metric"><div class="num">-7.75%</div><div class="lbl">AUTO 档 vs ComfyUI 原生 offload 平均耗时</div></div>
+<div class="metric"><div class="num">CV 0.161</div><div class="lbl">AUTO 档抖动系数（修复前 0.614）</div></div>
+<div class="metric"><div class="num">6868 MiB</div><div class="lbl">AUTO 档峰值显存（预算自适应受控）</div></div>
+<div class="metric"><div class="num">+7.6~9.9pp</div><div class="lbl">仿真三档命中率提升 vs naive(LRU)</div></div>
+<div class="metric"><div class="num">-14%~18.7%</div><div class="lbl">仿真三档 IO 开销节省</div></div>
+<div class="metric"><div class="num">0 OOM</div><div class="lbl">仿真三档 + 实机 AUTO 档无崩溃</div></div>
+</div>
+<table>
+<tr><th>指标</th><th>数值</th><th>口径</th></tr>
+<tr><td>预算自适应无崩溃</td><td>AUTO=0.5 档 3/3 轮完成；256MiB 修复档 3/3 轮完成</td><td>实机汇总 20261018</td></tr>
+<tr><td>抖动收敛</td><td>AUTO CV 0.161（修复前 192MiB CV 0.614）</td><td>实机汇总 20261018</td></tr>
+<tr><td>峰值显存受控</td><td>AUTO 峰值 6868 MiB（较无预算省 36%）</td><td>实机汇总 20261018</td></tr>
+<tr><td>真机对照</td><td>mean -7.75%；stdev +39.4%（如实披露，单模板场景）</td><td>benchmark_auto_vs_native 20261018</td></tr>
+<tr><td>命中率提升</td><td>仿真三档 +7.6 ~ +9.9pp</td><td>evidence 20261018</td></tr>
+<tr><td>IO 开销节省</td><td>仿真三档 -14.0% ~ -18.7%</td><td>evidence 20261018</td></tr>
+<tr><td>OOM 防护</td><td>仿真三档 0 OOM；<code>_BUDGET_FAILED</code> 降级兜底</td><td>evidence 20261018</td></tr>
+</table>
+<div class="note">诚实声明：实机数字为本机（RTX 3060 12GB）实测，仿真台数据均标注 mode=sim 不冒充真机；竞品量化数字一律为公开引用、非本机实测，见对比页。</div>
+</div>
+
+<div class="card">
+<h2>分层架构</h2>
+<pre><code>任务/对话输入
+   ↓
+[语义感知层] 八域分类 -> 任务画像          (core/classifier.py)
+   ↓
+[调度决策层] 冷热权衡 / 预取 / 淘汰 / 压力保护 (core/planner.py, scheduler.py, memory.py)
+   ↓
+[执行接入层] 框架 Hook（ComfyUI / llama.cpp / Mobile）  (adapters/*)
+   ↓
+存储层级：GPU 显存 -> CPU 内存 -> 本地 SSD   (core/storage.py)</code></pre>
+<p>四象压力策略：LOW / CRITICAL / HIGH / FROZEN 四档压力水位，高压力下仅放行释放类动作（下沉/淘汰），OOM 防护与崩溃回退内置。</p>
+</div>
+
+<div class="card">
+<h2>版权与独立实现声明</h2>
+<p>本项目核心调度逻辑（<code>tds/core/</code> 三平面）为<strong>独立设计实现，拥有完整自主知识产权</strong>。对底层推理引擎的对接，仅通过其公开、开放的接口完成，不复制、不内联任何第三方受版权保护的实现代码（llama.cpp MIT License、ComfyUI custom_node 扩展接口、移动端统一 Adapter 契约）。</p>
+<p style="margin-top:8px">版权：BY LAOMENG 网络工作室（孟祥辉）· 独立实现 · v0.3.0（冻结基线，2026-10-18）</p>
+</div>
+</main>
+<footer>
+<p>TDS 太极调度层 · BY LAOMENG 网络工作室 · 本页数据均来自官方证据包，实测/引用分离</p>
+</footer>
+</body>
+</html>

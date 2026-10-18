@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>能力对比 · TDS 太极调度层</title>
+<style>
+:root{--ink:#1a1a1a;--muted:#666;--line:#e5e7eb;--bg:#fafafa;--accent:#b45309;--accent2:#78350f;--card:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+header{background:linear-gradient(135deg,#1c1917,#44403c);color:#fff;padding:40px 24px 32px;text-align:center}
+header h1{font-size:28px;letter-spacing:2px;margin-bottom:6px}
+nav{background:#292524;padding:10px 0;position:sticky;top:0;z-index:10}
+nav .wrap{max-width:960px;margin:0 auto;display:flex;gap:8px;padding:0 16px;flex-wrap:wrap}
+nav a{color:#e7e5e4;text-decoration:none;padding:6px 16px;border-radius:6px;font-size:14px}
+nav a.active,nav a:hover{background:#b45309;color:#fff}
+main{max-width:960px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px 28px;margin-bottom:20px}
+h2{font-size:20px;color:var(--accent2);border-left:4px solid var(--accent);padding-left:10px;margin-bottom:14px}
+p,li{font-size:14px;color:#333}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:center}
+th{background:#f5f5f4;color:var(--accent2)}
+td:first-child{text-align:left;font-weight:600}
+td.tds{background:#fef3c7}
+.y{color:#166534;font-weight:700}
+.n{color:#b91c1c;font-weight:700}
+.dash{color:#9ca3af}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#78350f;margin:12px 0}
+footer{max-width:960px;margin:32px auto;padding:20px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center}
+code{background:#f5f5f4;border:1px solid #e5e7eb;border-radius:4px;padding:1px 6px;font-size:13px;font-family:Consolas,monospace}
+</style>
+</head>
+<body>
+<header>
+<h1>能力对比</h1>
+</header>
+<nav>
+<div class="wrap">
+<a href="index.html">首页</a>
+<a href="compare.html" class="active">能力对比</a>
+<a href="docs.html">集成文档</a>
+</div>
+</nav>
+<main>
+<div class="card">
+<h2>竞品能力矩阵（定性判断，公开引用口径）</h2>
+<table>
+<tr><th>方案</th><th>跨模型调度</th><th>语义预判</th><th>分层卸载</th><th>KV分页</th><th>宿主无关</th><th>零依赖内核</th><th>多卡</th><th>OOM防护</th><th>实测</th></tr>
+<tr class="tds"><td>TDS</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="dash">-</td><td class="y">Y</td><td>是</td></tr>
+<tr><td>llama-swap</td><td class="y">Y</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td>否</td></tr>
+<tr><td>vLLM</td><td class="y">Y</td><td class="dash">-</td><td class="dash">-</td><td class="y">Y</td><td class="dash">-</td><td class="dash">-</td><td class="y">Y</td><td class="y">Y</td><td>否</td></tr>
+<tr><td>VibeQwen</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td>否</td></tr>
+<tr><td>ComfyUI-MultiGPU</td><td class="dash">-</td><td class="dash">-</td><td class="y">Y</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="y">Y</td><td class="dash">-</td><td>否</td></tr>
+<tr><td>ComfyUI 原生</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="y">Y</td><td>否</td></tr>
+</table>
+<div class="note">能力为定性判断；竞品量化性能未在本机实测，仅列公开引用数据，不混入 TDS 实测区。实测列表示官方/本机证据是否公开可得。</div>
+</div>
+
+<div class="card">
+<h2>差异化能力对照（引用来源见竞品调研报告）</h2>
+<table>
+<tr><th>能力维度</th><th>LM Studio</th><th>Ollama</th><th>ComfyUI 内置</th><th>Nunchaku</th><th>TDS</th></tr>
+<tr><td>动态显存预算</td><td>半自动</td><td>自动层拆分</td><td>静态标志</td><td>无</td><td class="tds">自适应(AUTO)</td></tr>
+<tr><td>淘汰序推演</td><td>无</td><td>LRU-K（仅LLM KV）</td><td>无</td><td>无</td><td class="tds">八卦域 keep_steps 前瞻</td></tr>
+<tr><td>宿主无关可售 SDK</td><td>否</td><td>否</td><td>否</td><td>否</td><td class="tds">是</td></tr>
+<tr><td>图像生成节点图</td><td>否</td><td>否</td><td>是（仅原生）</td><td>仅 FLUX</td><td class="tds">跨宿主接入</td></tr>
+<tr><td>页级调度(TBP)</td><td>无</td><td>部分（LLM KV）</td><td>无</td><td>无</td><td class="tds">是</td></tr>
+<tr><td>崩溃回退/降级</td><td>无</td><td>无</td><td>无</td><td>无</td><td class="tds"><code>_BUDGET_FAILED</code> 降级</td></tr>
+</table>
+<p style="margin-top:10px">LM Studio / Ollama / GPU-Hot 类工具做的是"监控 + offload 控制"，不做淘汰序推演；Ollama 的 KV 页级卸载最接近 TDS，但受限于 LLM 推理引擎内嵌与仅 KV 缓存页，不覆盖权重/节点域，且无八卦域前瞻。TDS 的"动态预算 + 全域淘汰序推演 + 宿主无关 SDK"组合在当前公开生态中未检索到等价物。</p>
+</div>
+
+<div class="card">
+<h2>真机实测对照（2026-10-18，RTX 3060 12GB，FLUX GGUF 单模板）</h2>
+<table>
+<tr><th>指标</th><th>TDS AUTO</th><th>ComfyUI 原生 offload</th><th>差值/变化</th></tr>
+<tr><td>mean 单次耗时</td><td>78423.67 ms</td><td>85011.00 ms</td><td class="y">-6587 ms（-7.75%）</td></tr>
+<tr><td>stdev 抖动</td><td>12630.77 ms</td><td>9062.82 ms</td><td class="n">+3568 ms（+39.4%，如实披露）</td></tr>
+<tr><td>CV 变异系数</td><td>0.1611</td><td>0.1066</td><td>+0.0545</td></tr>
+<tr><td>VRAM 峰值</td><td>6868 MiB</td><td>6310 MiB</td><td>+558 MiB（预期成本）</td></tr>
+</table>
+<div class="note">结论：接入后不劣化（均值快 7.75%，三档均无 OOM、无崩溃）。抖动上升主因单模板 3 轮场景下模型仅加载一次，无跨模型页淘汰机会，AUTO 动态预算的调度探测引入额外开销；TDS 核心收益（跨模型 KV 页级复用、keep_steps 命中率、IO 削减）需多模型/多模板交替场景体现。优势场景证据见仿真台三档（8192/10240/12288MB）：命中率 +7.6~+9.9pp、IO -14%~-18.7%、0 OOM。</div>
+</div>
+</main>
+<footer>
+<p>TDS 太极调度层 · BY LAOMENG 网络工作室 · 竞品数字为公开引用非本机实测，实测/引用严格分离</p>
+</footer>
+</body>
+</html>

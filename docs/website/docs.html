@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集成文档 · TDS 太极调度层</title>
+<style>
+:root{--ink:#1a1a1a;--muted:#666;--line:#e5e7eb;--bg:#fafafa;--accent:#b45309;--accent2:#78350f;--card:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+header{background:linear-gradient(135deg,#1c1917,#44403c);color:#fff;padding:40px 24px 32px;text-align:center}
+header h1{font-size:28px;letter-spacing:2px;margin-bottom:6px}
+nav{background:#292524;padding:10px 0;position:sticky;top:0;z-index:10}
+nav .wrap{max-width:960px;margin:0 auto;display:flex;gap:8px;padding:0 16px;flex-wrap:wrap}
+nav a{color:#e7e5e4;text-decoration:none;padding:6px 16px;border-radius:6px;font-size:14px}
+nav a.active,nav a:hover{background:#b45309;color:#fff}
+main{max-width:960px;margin:24px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:24px 28px;margin-bottom:20px}
+h2{font-size:20px;color:var(--accent2);border-left:4px solid var(--accent);padding-left:10px;margin-bottom:14px}
+h3{font-size:16px;margin:16px 0 8px}
+p,li{font-size:14px;color:#333}
+ul{padding-left:20px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+th{background:#f5f5f4;color:var(--accent2)}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#78350f;margin:12px 0}
+footer{max-width:960px;margin:32px auto;padding:20px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center}
+code{background:#f5f5f4;border:1px solid #e5e7eb;border-radius:4px;padding:1px 6px;font-size:13px;font-family:Consolas,monospace}
+pre{background:#1c1917;color:#e7e5e4;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;font-family:Consolas,monospace;line-height:1.5;margin:12px 0}
+pre code{background:none;border:none;color:inherit;padding:0}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+<h1>集成文档</h1>
+</header>
+<nav>
+<div class="wrap">
+<a href="index.html">首页</a>
+<a href="compare.html">能力对比</a>
+<a href="docs.html" class="active">集成文档</a>
+</div>
+</nav>
+<main>
+<div class="card">
+<h2>快速安装</h2>
+<pre><code># 安装 SDK（宿主无关内核，零第三方运行时依赖）
+pip install tds-core</code></pre>
+<p>当前 PyPI 上架版本：<strong>tds-core 0.3.0</strong>（冻结基线，含自有签名安全模块）。</p>
+</div>
+
+<div class="card">
+<h2>宿主无关契约</h2>
+<p>TDS 适配层只依赖 5 个契约方法，接 ComfyUI、A1111、Fooocus 或自研后端同等成本：</p>
+<table>
+<tr><th>方法</th><th>职责</th></tr>
+<tr><td><code>load</code></td><td>将模型/权重加载进显存</td></tr>
+<tr><td><code>unload</code></td><td>从显存卸载/下沉模型</td></tr>
+<tr><td><code>prefetch</code></td><td>预取即将使用的模型/页</td></tr>
+<tr><td><code>vram_state</code></td><td>上报当前显存占用状态</td></tr>
+<tr><td><code>io_cost</code></td><td>估算加载/卸载的 IO 开销</td></tr>
+</table>
+<h3>接入示例</h3>
+<pre><code>from tds.api import TDSRuntime
+from tds.adapters import YourAdapter  # 实现 BaseAdapter 契约即可
+
+rt = TDSRuntime(config=cfg)
+rt.register_adapter(YourAdapter(...), "your-host")
+rt.attach("your-host")
+# 每次推理决策前: rt.run_task(...) -> {step, primary, scores, pressure, action, plan, applied}</code></pre>
+<div class="note">注：<code>tds.adapters</code> 为随宿主部署的可选配件，不随 <code>tds-core</code> SDK 包分发；上例仅示意宿主侧契约，实际由集成方按 BaseAdapter 契约自实现。</div>
+</div>
+
+<div class="card">
+<h2>发布包完整性三重校验</h2>
+<ol>
+<li><strong>SHA256 完整性</strong>：对照发布包 CHECKSUMS.txt</li>
+<li><strong>Ed25519 验签</strong>：用随包公钥验证 wheel 的 detached 签名（签名即授权）</li>
+<li><strong>公钥指纹绑定</strong>：核对公钥指纹，防公钥整体替换（首次信任后固化）</li>
+</ol>
+<pre><code># 校验发布包自有签名
+python -m tds.security.verify &lt;wheel文件&gt; &lt;wheel.sig文件&gt;
+
+# 作为模块调用
+from tds.security import verify_wheel
+result = verify_wheel("tds_core-0.3.0-py3-none-any.whl", "tds_core-0.3.0-py3-none-any.whl.sig")
+assert result["ok"]</code></pre>
+<h3>公钥指纹</h3>
+<pre><code>C33CA76AEBA8B861C9CBB419472C213D504E2DF92B761824908AB34C56FFAC0A</code></pre>
+<p>私钥由 BY LAOMENG 网络工作室本地保管，绝不随包分发。该模块零第三方运行时依赖；仅验签场景需要 <code>cryptography</code>（发布端与校验端均可用）。</p>
+</div>
+
+<div class="card">
+<h2>快速自测（零第三方依赖）</h2>
+<pre><code># 运行基础自测
+python -m unittest discover -s tests -v</code></pre>
+</div>
+
+<div class="card">
+<h2>三层架构与存储层级</h2>
+<pre><code>[语义感知层] 八域分类 -> 任务画像          (core/classifier.py)
+[调度决策层] 冷热权衡 / 预取 / 淘汰 / 压力保护 (core/planner.py, scheduler.py, memory.py)
+[执行接入层] 框架 Hook（ComfyUI / llama.cpp / Mobile）  (adapters/*)
+存储层级：GPU 显存 -> CPU 内存 -> 本地 SSD   (core/storage.py)</code></pre>
+<ul>
+<li>八域语义分类：乾坤 / 对话 / 检索 / 代码 / 图像 / 视频 / 工具 / 其他</li>
+<li>阴阳冷热分层：阳=热数据驻留显存；阴=冷数据下沉内存/SSD</li>
+<li>四象压力策略：LOW / CRITICAL / HIGH / FROZEN，高压力仅放行释放类动作</li>
+<li>预判预取：统计热度 + 启发式预取（Belady 近似）</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>证据包与源码</h2>
+<table>
+<tr><th>来源</th><th>地址</th></tr>
+<tr><td>GitHub 仓库 / Release v0.3.0</td><td>github.com/mxh678988/LMSL-TDS</td></tr>
+<tr><td>PyPI</td><td>pypi.org/project/tds-core/</td></tr>
+<tr><td>ComfyUI Registry</td><td>lmsl-smart-offload v0.1.0（经 ComfyUI-Manager 分发）</td></tr>
+<tr><td>证据包（wheel/.sig/公钥/CHECKSUMS/证据报告）</td><td>GitHub Release 资产与仓库 release/ 目录</td></tr>
+</table>
+</div>
+</main>
+<footer>
+<p>TDS 太极调度层 · BY LAOMENG 网络工作室 · v0.3.0 冻结基线 · 集成文档</p>
+</footer>
+</body>
+</html>
